@@ -443,6 +443,8 @@
     @keyframes halloween-ghost-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
     @keyframes halloween-fog-drift { from { transform: translateX(-2%); opacity: .55; } to { transform: translateX(2%); opacity: .9; } }
     @media (max-width: 600px) {
+      html.halloween-edition { overflow-x: clip; overscroll-behavior-x: none; }
+      html.halloween-edition .hero::after { right: 16px; }
       html.halloween-edition .halloween-moon { top: 42px; right: 9%; width: 68px; }
       html.halloween-edition .halloween-bat-one { top: 96px; right: 23%; }
       html.halloween-edition .halloween-bat-two { top: 132px; right: 8%; }
