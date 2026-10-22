@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17131f">
+  <meta name="description" content="Bologna Students Halloween Arcade 的数据处理说明与私密隐私请求入口。">
+  <meta name="bologna-ranking-api" content="https://bologna-halloween-ranking-staging.hongdavid0921.workers.dev">
+  <title>隐私说明与请求入口｜Bologna Students</title>
+  <link rel="stylesheet" href="privacy.css">
+  <script src="privacy-client.js" defer></script>
+</head>
+<body>
+  <main class="privacy-shell">
+    <header class="privacy-nav"><a href="arcade.html">← 返回 Halloween Arcade</a><span>BOLOGNA STUDENTS · PRIVACY</span></header>
+    <section class="privacy-hero">
+      <p class="eyebrow">HALLOWEEN ARCADE 2026</p>
+      <h1>隐私说明与数据请求</h1>
+      <p>由个人独立运营的非官方项目，不代表 Università di Bologna。参加公共排行榜是可选的；不加入仍可在本机玩游戏。</p>
+    </section>
+
+    <section class="privacy-card" aria-labelledby="controller-heading">
+      <h2 id="controller-heading">数据控制者与联系</h2>
+      <p><strong>数据控制者（Titolare del trattamento / Data Controller）：Hong David</strong></p>
+      <p>项目：Bologna Students。隐私请求和联系通过本页私密表单提交；不需要公开邮箱或电话号码，也请不要填写真实姓名、学号、微信号或他人的个人信息。</p>
+      <p>本项目未设独立数据保护官（DPO）；隐私请求直接由数据控制者处理。</p>
+      <p class="updated">说明版本：2026-10-22 · 最后更新：2026-10-22</p>
+    </section>
+
+    <section class="privacy-card">
+      <h2>处理哪些数据、为什么处理</h2>
+      <ul>
+        <li><strong>公共排行榜参加（同意，GDPR 第 6(1)(a) 条）：</strong>随机参赛编号、玩家自选昵称、各小游戏最佳成绩、身份创建及修改时间，以及用于恢复身份的令牌摘要。昵称、公开编号、成绩、名次与公开战绩卡会向所有访客显示。你可以拒绝或之后撤回同意；这不影响本机游戏。</li>
+        <li><strong>安全与公平维护（合法利益，GDPR 第 6(1)(f) 条）：</strong>有限的成绩会话、提交幂等键、原因码及管理员审核记录，用于阻止重放提交、处理异常成绩及维护活动榜单。异常成绩可能先暂停公开并由管理员人工复核；系统不会对玩家作出具有法律或类似重大影响的自动决定。</li>
+        <li><strong>隐私请求（遵守数据保护义务，GDPR 第 6(1)(c) 条）：</strong>请求类型、可选的公开参赛编号、你自愿填写的说明、请求状态及回复。请勿填写敏感信息或他人的信息。访问码只显示一次；服务端只保存它的 SHA-256 摘要。控制者可以查看请求，提交者凭请求编号与访问码查看处理状态和回复。</li>
+        <li><strong>举报：</strong>提交者的随机参赛身份、目标公开编号和有限的举报原因码；不提供自由文本。被举报玩家的数据来源是该玩家公开的榜单资料及其他玩家提交的举报。</li>
+      </ul>
+      <p>排行榜昵称和成绩只为本次 Halloween Arcade 提供公开排名与分享。我们不要求真实姓名、邮箱、电话号码、学号或微信号；不使用 IP 作为玩家身份，不建立设备指纹，不提供广告追踪、公共聊天或公共用户画像。</p>
+    </section>
+
+    <section class="privacy-card">
+      <h2>必要服务商、公开范围与跨境处理</h2>
+      <ul>
+        <li><strong>公开访客：</strong>加入榜单后，所有人都能看到昵称、公开编号、名次、成绩以及通关状态；请使用不含个人信息的昵称。</li>
+        <li><strong>Cloudflare：</strong>提供 Worker、D1 数据库及 Turnstile 验证。排行榜应用不把 IP 写入 D1，也不向 Siteverify 转发 IP；Cloudflare 仍可能为网络传输、安全和验证处理连接元数据。Cloudflare 全球网络可能涉及欧洲经济区之外的处理；其当前数据处理附录说明了适用于受限传输的欧盟标准合同条款及获取方式，详见<a href="https://www.cloudflare.com/cloudflare-customer-dpa/" rel="noopener noreferrer">Cloudflare 数据处理附录</a>。</li>
+        <li><strong>GitHub Pages：</strong>托管本网站。GitHub 说明 Pages 访问者的 IP 地址会为安全目的记录并保存；这些平台日志不进入本项目的排行榜数据库。平台自身的数据处理见<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">GitHub 隐私声明</a>。</li>
+      </ul>
+      <p>除上述公开展示和服务商外，本项目不向广告商、论坛或其他项目提供排行榜数据。服务商在提供服务时可能使用其分包商；具体处理地点、平台级日志和适用的传输保障以各服务商当时的条款、隐私声明及数据处理文件为准。</p>
+    </section>
+
+    <section class="privacy-card">
+      <h2>保存期限、权利与选择</h2>
+      <ul>
+        <li>玩家身份、公开昵称、成绩、恢复摘要及举报/审核数据计划保留至 2026-12-31；Europe/Rome 2027-01-01 00:00 的计划任务清理活动身份和成绩。你也可以提前删除自己的身份及成绩。</li>
+        <li>隐私请求访问码只保存摘要。未结请求最迟在提交后 180 天清理；已回复或关闭的请求在处理完成后 90 天清理。</li>
+        <li>在法律规定的条件下，你可以请求访问、更正、删除或限制处理，反对基于合法利益的处理，并在适用时请求数据可携；如果处理基于同意，你可以随时撤回同意，不影响撤回前的合法处理。</li>
+        <li>你可以向意大利个人数据保护监管机构 Garante per la protezione dei dati personali 提出投诉：<a href="https://www.garanteprivacy.it/" rel="noopener noreferrer">garanteprivacy.it ↗</a>。</li>
+        <li>提交排行榜所需的昵称和同意仅为可选榜单服务的必要条件；不提供时仍可玩本机游戏。没有法定或合同义务要求你参加。隐私请求中的公开编号和说明均可留空；无需创建账户或交付联系资料。</li>
+        <li>通常会在收到数据权利请求后一个月内答复；如请求复杂或数量较多，法律允许在一个月内说明延期及理由。</li>
+      </ul>
+    </section>
+
+    <section class="privacy-card" id="request-form" aria-labelledby="request-heading">
+      <p class="eyebrow">PRIVATE CONTACT · NO EMAIL REQUIRED</p>
+      <h2 id="request-heading">提交隐私请求</h2>
+      <p>请求通过 HTTPS 发送并仅由控制者授权的管理员接口读取。提交后会生成随机请求编号和访问码；请自行保存，两者不会出现在公开榜单或 URL 中。</p>
+      <form id="privacy-request-form" novalidate>
+        <label for="privacy-request-type">请求类型</label>
+        <select id="privacy-request-type" required>
+          <option value="access">访问个人数据</option>
+          <option value="rectification">更正数据</option>
+          <option value="erasure">删除数据</option>
+          <option value="restriction">限制处理</option>
+          <option value="objection">反对处理</option>
+          <option value="portability">数据可携</option>
+          <option value="withdraw_consent">撤回同意</option>
+          <option value="other">其他隐私问题</option>
+        </select>
+        <label for="privacy-public-code">公开参赛编号（可选）</label>
+        <input id="privacy-public-code" type="text" maxlength="11" autocomplete="off" placeholder="例如 BS-ABCDEFGH">
+        <label for="privacy-request-message">说明（可选，最多 1200 字）</label>
+        <textarea id="privacy-request-message" maxlength="1200" rows="4" placeholder="请说明你希望控制者处理什么。不要输入真实姓名、联系方式、密码或其他人的个人信息。"></textarea>
+        <div id="privacy-turnstile-submit" class="turnstile-mount" aria-label="提交请求的人机验证"></div>
+        <button class="primary-button" id="privacy-request-submit" type="submit" disabled>安全提交请求</button>
+        <p class="form-message" id="privacy-request-status" role="status" aria-live="polite"></p>
+      </form>
+      <div class="request-receipt" id="privacy-request-receipt" hidden>
+        <h3>请求已送达</h3>
+        <p>现在保存以下两项；访问码关闭后不会再次显示。</p>
+        <p>请求编号：<code id="privacy-receipt-code"></code></p>
+        <p>一次性访问码：<code id="privacy-receipt-access"></code></p>
+        <button class="secondary-button" id="privacy-copy-receipt" type="button">复制请求凭据</button>
+      </div>
+    </section>
+
+    <section class="privacy-card" aria-labelledby="check-heading">
+      <h2 id="check-heading">查询隐私请求进度</h2>
+      <form id="privacy-check-form" novalidate>
+        <label for="privacy-check-code">请求编号</label>
+        <input id="privacy-check-code" type="text" maxlength="27" autocomplete="off" placeholder="PR-…" required>
+        <label for="privacy-check-access">一次性访问码</label>
+        <input id="privacy-check-access" type="password" maxlength="60" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        <div id="privacy-turnstile-check" class="turnstile-mount" aria-label="查询请求的人机验证"></div>
+        <button class="secondary-button" id="privacy-check-submit" type="submit" disabled>查看私密回复</button>
+        <p class="form-message" id="privacy-check-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <footer class="privacy-footer">
+      <p>本隐私说明面向 Bologna Students Halloween Arcade 2026 的排行榜和活动数据处理；不代表 Università di Bologna 的隐私声明。</p>
+      <p>法律依据：<a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj" rel="noopener noreferrer">Regulation (EU) 2016/679，尤其第 12–14 条 ↗</a></p>
+      <a href="arcade.html">← 返回 Halloween Arcade</a>
+    </footer>
+  </main>
+</body>
+</html>

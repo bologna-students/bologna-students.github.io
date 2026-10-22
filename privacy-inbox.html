@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; connect-src https://bologna-halloween-ranking-staging.hongdavid0921.workers.dev; base-uri 'none'; form-action 'self';">
+  <meta name="bologna-ranking-api" content="https://bologna-halloween-ranking-staging.hongdavid0921.workers.dev">
+  <title>运营者隐私请求收件箱｜Bologna Students</title>
+  <link rel="stylesheet" href="privacy.css">
+  <script src="privacy-inbox.js" defer></script>
+</head>
+<body>
+  <main class="privacy-shell">
+    <header class="privacy-nav"><a href="privacy.html">← 返回公开隐私说明</a><span>OPERATOR ONLY</span></header>
+    <section class="privacy-hero">
+      <p class="eyebrow">PRIVATE ADMIN INBOX</p>
+      <h1>隐私请求收件箱</h1>
+      <p>只有持有 Worker 管理 Secret 的运营者可以读取或处理请求。访问令牌只在本页内存中使用；不会写入 localStorage、URL 或网页文件。</p>
+    </section>
+    <section class="privacy-card">
+      <form id="admin-login-form">
+        <label for="admin-api-token">ADMIN_API_TOKEN</label>
+        <input id="admin-api-token" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" required>
+        <div class="identity-actions"><button class="primary-button" type="submit">安全查看请求</button><button class="secondary-button" id="admin-logout" type="button" disabled>清除本页令牌</button></div>
+        <p class="form-message" id="admin-status" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+    <section class="privacy-card" aria-labelledby="queue-heading">
+      <h2 id="queue-heading">待处理请求</h2>
+      <div id="privacy-request-queue" aria-live="polite"></div>
+    </section>
+  </main>
+</body>
+</html>
