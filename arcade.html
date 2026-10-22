@@ -4,10 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#17131f">
-  <meta name="description" content="Bologna Students Halloween Arcade 2026：本机成绩、午夜十秒、南瓜糖果投篮与 Bologna 万圣谜团。">
+  <meta name="description" content="Bologna Students Halloween Arcade 2026：午夜十秒、南瓜糖果投篮、Bologna 万圣谜团与群友排行榜。">
+  <meta name="bologna-ranking-api" content="https://bologna-halloween-ranking-staging.hongdavid0921.workers.dev">
   <title>Halloween Arcade 2026｜Bologna Students</title>
   <link rel="stylesheet" href="arcade.css">
   <script src="arcade.js" defer></script>
+  <script src="leaderboard-client.js" defer></script>
 </head>
 <body>
   <div class="arcade-shell">
@@ -21,13 +23,14 @@
       <h1>这一季的游戏已收进南瓜灯</h1>
       <p>Halloween Arcade 活动于 2026 年 11 月 30 日（Europe/Rome）结束。生活指南已恢复普通主题。</p>
       <a class="button-link" href="index.html">回到 Bologna Students</a>
+      <p><a href="privacy.html">排行榜隐私说明与请求入口 ↗</a></p>
     </section>
 
     <main class="arcade-app" id="arcade-app" hidden>
       <section class="arcade-hero" aria-labelledby="arcade-title">
         <p class="eyebrow" id="season-label">HALLOWEEN ARCADE · OCT 2026</p>
         <h1 id="arcade-title">今晚，试试手气与直觉</h1>
-        <p>三款轻量挑战，成绩只保存在当前浏览器。没有登录、公共排行榜或固定奖金。</p>
+        <p id="arcade-hero-copy">三款轻量挑战可以单独玩；加入群友榜是可选的，无需邮箱或真实身份，也没有固定奖金。</p>
       </section>
 
       <section class="player-panel" aria-labelledby="player-title">
@@ -48,6 +51,96 @@
           <p>万圣谜团：<strong id="record-puzzle">尚未通关</strong></p>
         </div>
       </section>
+
+      <section class="community-board" id="community-board" aria-labelledby="community-title">
+        <div class="community-heading">
+          <div><p class="eyebrow">GROUP CHAT CHALLENGE</p><h2 id="community-title">群友挑战榜</h2></div>
+          <span class="board-status" id="ranking-connection" role="status" aria-live="polite">公共榜单服务尚未连接</span>
+        </div>
+        <p class="community-intro">取个好笑的名字，看看谁把南瓜玩得更明白。无需账号；游戏照常可玩，排行榜只是额外挑战。</p>
+        <div class="leaderboard-tabs" role="group" aria-label="选择排行榜">
+          <button type="button" data-board="overall" aria-pressed="true">综合榜</button>
+          <button type="button" data-board="time" aria-pressed="false">午夜十秒</button>
+          <button type="button" data-board="candy" aria-pressed="false">南瓜投篮</button>
+          <button type="button" data-board="puzzle" aria-pressed="false">谜团通关墙</button>
+        </div>
+        <ol class="leaderboard-list" id="leaderboard-list" aria-label="前十名"></ol>
+        <p class="leaderboard-empty" id="leaderboard-empty">榜单服务尚未配置。现在仍可玩游戏并保留本机纪录。</p>
+        <p class="personal-rank" id="personal-rank" role="status" aria-live="polite" hidden></p>
+
+        <div class="identity-panel" id="identity-panel">
+          <div class="identity-panel-copy">
+            <h3 id="ranking-join-heading">用一个搞笑昵称加入</h3>
+            <p id="ranking-join-copy">第一次加入会生成随机参赛编号和恢复码。名字在本次活动内唯一；修改后保留原成绩，每 7 天可改一次。</p>
+          </div>
+          <div class="identity-actions">
+            <button class="primary-button" id="ranking-show-register" type="button" disabled>创建随机身份</button>
+            <button class="secondary-button" id="ranking-show-restore" type="button" disabled>我有恢复码</button>
+            <button class="secondary-button" id="ranking-show-manage" type="button" hidden>我的参赛资料</button>
+          </div>
+        </div>
+
+        <form class="rank-form" id="ranking-register-form" hidden>
+          <label for="ranking-register-name">公开昵称 <span>最多 16 个可见字符</span></label>
+          <div class="nickname-row"><input id="ranking-register-name" type="text" maxlength="256" autocomplete="off" placeholder="例如：双塔守瓜人"><button class="primary-button" type="submit">确认加入</button></div>
+          <label class="consent-line"><input id="ranking-consent" type="checkbox"><span>我已阅读<a href="privacy.html" target="_blank" rel="noopener">完整隐私说明</a>：公开编号、昵称和最佳成绩会公开至 2026 年 12 月 31 日；可以提出数据权利请求。排行榜应用不保存 IP 或设备指纹；Cloudflare 与 GitHub 仍可能按各自说明处理连接数据。不同浏览器不会自动共享身份。</span></label>
+          <div class="turnstile-mount" id="ranking-turnstile-register"></div>
+          <p class="form-help">不需要真实姓名、手机号、邮箱、学号或微信号。请勿冒充官方、泄露他人隐私或发布严重骚扰/歧视昵称。</p>
+        </form>
+
+        <form class="rank-form" id="ranking-restore-form" hidden>
+          <label for="ranking-recovery-input">粘贴你的恢复码</label>
+          <div class="nickname-row"><input id="ranking-recovery-input" type="password" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="BSR1.…"><button class="primary-button" type="submit">恢复身份</button></div>
+          <div class="turnstile-mount" id="ranking-turnstile-restore"></div>
+          <p class="form-help">恢复码只用来找回随机身份。服务器不保存明文恢复码；如果本机记录和恢复码都丢失，无法保证找回。</p>
+        </form>
+
+        <form class="rank-form" id="ranking-manage-form" hidden>
+          <p class="linked-player" id="ranking-linked-player"></p>
+          <label for="ranking-change-name">修改昵称 <span>冷却 7 天，成绩和编号不变</span></label>
+          <div class="nickname-row"><input id="ranking-change-name" type="text" maxlength="256" autocomplete="off"><button class="secondary-button" id="ranking-change-submit" type="button">保存新昵称</button></div>
+          <div class="turnstile-mount" id="ranking-turnstile-manage"></div>
+          <div class="identity-actions"><button class="secondary-button" id="ranking-rotate-recovery" type="button">生成新恢复码</button><button class="secondary-button" id="ranking-logout" type="button">在此浏览器退出</button><button class="danger-button" id="ranking-delete" type="button">删除我的公开身份和成绩</button></div>
+          <p class="form-help">退出只移除本浏览器的访问凭证，不会删除公开资料。删除会立即清除这个随机身份、昵称、成绩和恢复凭证。</p>
+        </form>
+
+        <details class="ranking-rules">
+          <summary>排名、核验与隐私说明</summary>
+          <ul>
+            <li>综合分：十秒 40% + 投篮 40% + 谜团 20%。时间分按误差秒数计算，最高误差按 2 秒封顶；投篮每分折 5 分；谜团通关得 100 分。至少完成一项才进入综合榜。</li>
+            <li>同分稳定排序：综合榜依次比较综合分、十秒误差、投篮分、谜团是否通关，最后按公开编号；单项榜同分按公开编号排列。谜团通关墙不按解题速度排名。</li>
+            <li>服务器会核验成绩范围、提交会话和规则并限制提交频率；浏览器游戏公开运行，无法独立证明真实点击过程。极端成绩会暂缓公开并交管理员复核。</li>
+            <li>收集项目、处理目的、保存期限、你的权利及第三方服务说明见<a href="privacy.html">完整隐私说明</a>；隐私请求通过私密站内表单提交，不需要邮箱或电话号码。</li>
+            <li>红包属于主办方自愿惊喜，不是固定奖金、报名权益或获奖承诺。</li>
+          </ul>
+        </details>
+      </section>
+
+      <dialog class="ranking-dialog" id="public-profile-dialog" aria-labelledby="public-profile-title">
+        <div class="dialog-top"><p class="eyebrow">PLAYER SCORECARD</p><button class="dialog-close" type="button" data-close-dialog="public-profile-dialog" aria-label="关闭">×</button></div>
+        <h2 id="public-profile-title"></h2>
+        <p class="public-code-line" id="public-profile-code"></p>
+        <dl class="profile-stats" id="public-profile-stats"></dl>
+        <p class="form-help">公开昵称与成绩来自排行榜。成绩按规则范围核验，但客户端操作无法被服务端完全独立证明。</p>
+        <div class="identity-actions"><button class="primary-button" id="public-profile-share" type="button">分享这张战绩</button><button class="secondary-button" id="public-profile-report-open" type="button">举报此昵称或成绩</button></div>
+        <form class="rank-form" id="public-profile-report-form" hidden>
+          <label for="public-report-reason">举报原因</label>
+          <select id="public-report-reason"><option value="impersonation">冒充官方或他人</option><option value="harassment">骚扰或歧视</option><option value="privacy">泄露隐私</option><option value="cheating">成绩异常</option><option value="other">其他严重问题</option></select>
+          <div class="turnstile-mount" id="ranking-turnstile-report"></div>
+          <button class="secondary-button" id="public-profile-report-submit" type="submit">提交举报</button>
+          <p class="form-help">不需要填写说明文字，也不要写入个人信息。每个参赛身份对同一玩家只能举报一次。</p>
+        </form>
+      </dialog>
+
+      <dialog class="ranking-dialog recovery-dialog" id="recovery-code-dialog" aria-labelledby="recovery-dialog-title">
+        <div class="dialog-top"><p class="eyebrow">SAVE THIS CODE</p><button class="dialog-close" type="button" data-close-dialog="recovery-code-dialog" aria-label="关闭">×</button></div>
+        <h2 id="recovery-dialog-title">把恢复码收好</h2>
+        <p>恢复码只显示这一次。请保存到你自己的安全位置，不要发到群里或分享截图。服务端只保存它的加盐摘要。</p>
+        <code class="recovery-code-value" id="recovery-code-value"></code>
+        <button class="primary-button" id="recovery-code-copy" type="button">复制恢复码</button>
+        <label class="consent-line recovery-ack"><input id="recovery-code-ack" type="checkbox"><span>我已保存恢复码，知道丢失恢复码和浏览器记录后可能无法找回。</span></label>
+        <button class="secondary-button" id="recovery-code-done" type="button" disabled>完成</button>
+      </dialog>
 
       <nav class="game-jump" aria-label="游戏导航">
         <a href="#ten-seconds">01 午夜十秒</a>
@@ -128,6 +221,7 @@
         <p>Halloween Arcade 只在 2026 年 10 月 20 日至 11 月 30 日（Europe/Rome）开放。</p>
         <p><a href="https://www.unibo.it/en/university/who-we-are/our-history/our-history" target="_blank" rel="noopener noreferrer">UniBo 官方历史介绍 ↗</a></p>
         <p>学生自发制作，非 Università di Bologna 官方游戏或平台。</p>
+        <p><a href="privacy.html">隐私说明与请求入口 ↗</a></p>
         <a href="index.html">← 返回博洛尼亚学生生活指南</a>
       </footer>
     </main>

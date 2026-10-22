@@ -22,6 +22,7 @@
       if (values.year !== 2026) return "normal";
       if (values.month === 10 && values.day >= 20) return "halloween";
       if (values.month === 11) return "afterparty";
+      if (values.month === 12) return "read-only";
       return "normal";
     } catch (_) {
       return "normal";
@@ -106,14 +107,53 @@
     if (!app || !closed) return;
 
     var phase = seasonPhase(new Date());
-    var active = phase === "halloween" || phase === "afterparty";
-    document.documentElement.classList.toggle("arcade-active", active);
+    var readOnly = phase === "read-only";
+    var active = phase === "halloween" || phase === "afterparty" || readOnly;
+    document.documentElement.classList.toggle("arcade-active", phase === "halloween" || phase === "afterparty");
+    document.documentElement.classList.toggle("arcade-readonly", readOnly);
     app.hidden = !active;
     closed.hidden = active;
     if (!active) return;
 
+    function applyReadOnlyView() {
+      app.hidden = false;
+      closed.hidden = true;
+      document.documentElement.classList.remove("arcade-active", "arcade-readonly");
+      document.documentElement.classList.add("arcade-readonly");
+      app.querySelectorAll(".player-panel, .game-jump, .game-card, .share-section").forEach(function (element) { element.hidden = true; });
+      var title = document.getElementById("arcade-title");
+      var copy = document.getElementById("arcade-hero-copy");
+      var joinTitle = document.getElementById("ranking-join-heading");
+      var joinCopy = document.getElementById("ranking-join-copy");
+      var label = document.getElementById("season-label");
+      if (title) title.textContent = "南瓜灯熄灭了，战绩还留在这里";
+      if (copy) copy.textContent = "本季游戏和新成绩提交已关闭。公开榜单只读至 2026 年 12 月 31 日（Europe/Rome）；之后按说明清理身份与成绩。";
+      if (joinTitle) joinTitle.textContent = "本季榜单已进入只读期";
+      if (joinCopy) joinCopy.textContent = "不能创建新身份、修改昵称或提交新成绩。已有参赛者仍可查看战绩、恢复身份或删除资料。";
+      if (label) label.textContent = "PUBLIC SCORE ARCHIVE · DEC 2026";
+    }
+
+    function closeArchiveView() {
+      app.hidden = true;
+      closed.hidden = false;
+      document.documentElement.classList.remove("arcade-active", "arcade-readonly");
+    }
+
+    function emitRankingEvent(name, detail) {
+      try { document.dispatchEvent(new window.CustomEvent(name, { detail: detail || {} })); }
+      catch (_) { /* Optional ranking integration must never block local play. */ }
+    }
+
     var seasonLabel = document.getElementById("season-label");
-    if (seasonLabel) seasonLabel.textContent = phase === "afterparty" ? "HALLOWEEN AFTERPARTY · NOV 2026" : "HALLOWEEN ARCADE · OCT 2026";
+    if (seasonLabel) seasonLabel.textContent = readOnly ? "PUBLIC SCORE ARCHIVE · DEC 2026" : phase === "afterparty" ? "HALLOWEEN AFTERPARTY · NOV 2026" : "HALLOWEEN ARCADE · OCT 2026";
+    if (readOnly) {
+      applyReadOnlyView();
+      var archiveTimer = window.setInterval(function () { if (seasonPhase(new Date()) === "normal") { window.clearInterval(archiveTimer); closeArchiveView(); } }, 60000);
+      document.addEventListener("visibilitychange", function () { if (!document.hidden && seasonPhase(new Date()) === "normal") { window.clearInterval(archiveTimer); closeArchiveView(); } });
+      window.addEventListener("pageshow", function () { if (seasonPhase(new Date()) === "normal") { window.clearInterval(archiveTimer); closeArchiveView(); } });
+      window.addEventListener("focus", function () { if (seasonPhase(new Date()) === "normal") { window.clearInterval(archiveTimer); closeArchiveView(); } });
+      return;
+    }
 
     var memoryStorage = {};
     var storageAvailable = true;
@@ -209,6 +249,7 @@
     }
     function startTime() {
       if (timeStartedAt !== null || timeResults.length >= 3) return;
+      if (timeResults.length === 0) emitRankingEvent("bologna:arcade-game-start", { game: "time" });
       timeStartedAt = window.performance.now();
       if (timerDisplay) timerDisplay.textContent = "••••";
       if (timeStatus) timeStatus.textContent = "计时中。准备好后按「停止」。";
@@ -235,6 +276,10 @@
         if (timeStatus) timeStatus.textContent += " 本轮最佳：" + best.actual.toFixed(2) + " 秒。";
         if (timeReset) timeReset.textContent = "再来一轮";
         renderRecords();
+        emitRankingEvent("bologna:arcade-score", {
+          game: "time",
+          result: { attemptsUs: timeResults.map(function (item) { return Math.round(item.actual * 1000000); }) }
+        });
       } else if (timeStatus) {
         timeStatus.textContent += " 还剩 " + (3 - timeResults.length) + " 次。";
       }
@@ -265,7 +310,7 @@
     var candyStatus = document.getElementById("candy-status");
     var reduceQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
     var reducedMotion = !!(reduceQuery && reduceQuery.matches);
-    var candyState = { active: false, shots: 0, score: 0, startedAt: 0, throwing: null, frame: null, motionTimer: null, throwTimer: null, hiddenAt: null };
+    var candyState = { active: false, shots: 0, score: 0, shotsMs: [], startedAt: 0, throwing: null, frame: null, motionTimer: null, throwTimer: null, hiddenAt: null };
     function currentTime() { return window.performance.now(); }
     function elapsedGameSeconds(now) { return Math.max(0, ((now || currentTime()) - candyState.startedAt) / 1000); }
     function resizeCanvas() {
@@ -377,6 +422,10 @@
         if (candyStatus) candyStatus.textContent += " 本局 " + candyState.score + " / 20 分。";
         if (candyStart) { candyStart.disabled = false; candyStart.textContent = "再玩一局"; }
         if (candyThrow) candyThrow.disabled = true;
+        emitRankingEvent("bologna:arcade-score", {
+          game: "candy",
+          result: { shotsMs: candyState.shotsMs.slice(), reducedMotion: reducedMotion }
+        });
       } else {
         updateCandyLabels();
         startCanvasLoop();
@@ -385,7 +434,9 @@
     }
     function throwCandy() {
       if (!candyState.active || candyState.throwing) return;
-      var result = scoreCandyThrow(elapsedGameSeconds(), candyState.shots, reducedMotion);
+      var elapsedMs = elapsedGameSeconds() * 1000;
+      var result = scoreCandyThrow(elapsedMs / 1000, candyState.shots, reducedMotion);
+      candyState.shotsMs.push(Math.round(elapsedMs));
       candyState.throwing = { result: result, startedAt: currentTime() };
       if (candyStatus) candyStatus.textContent = "糖果飞向灯芯……";
       updateCandyLabels();
@@ -397,7 +448,7 @@
       stopCanvasLoop();
       if (candyState.throwTimer !== null) window.clearTimeout(candyState.throwTimer);
       candyState.throwTimer = null;
-      candyState = { active: false, shots: 0, score: 0, startedAt: 0, throwing: null, frame: null, motionTimer: null, throwTimer: null, hiddenAt: null };
+      candyState = { active: false, shots: 0, score: 0, shotsMs: [], startedAt: 0, throwing: null, frame: null, motionTimer: null, throwTimer: null, hiddenAt: null };
       updateCandyLabels();
       if (candyStart) { candyStart.disabled = false; candyStart.textContent = "开始投篮"; }
       if (candyStatus) candyStatus.textContent = "开始后南瓜灯才会移动；不会播放声音。";
@@ -410,6 +461,7 @@
       candyStart.addEventListener("click", function () {
         if (candyState.active) return;
         resetCandy();
+        emitRankingEvent("bologna:arcade-game-start", { game: "candy" });
         candyState.active = true;
         candyState.startedAt = currentTime();
         candyStart.disabled = true;
@@ -472,6 +524,12 @@
     var puzzleReplay = document.getElementById("puzzle-replay");
     var puzzleIndex = 0;
     var hintsUsed = 0;
+    var puzzleChallengeRequested = false;
+    function beginPuzzleChallenge() {
+      if (puzzleChallengeRequested) return;
+      puzzleChallengeRequested = true;
+      emitRankingEvent("bologna:arcade-game-start", { game: "puzzle" });
+    }
     function renderPuzzle() {
       if (puzzleIndex >= puzzles.length) {
         if (puzzlePanel) puzzlePanel.hidden = true;
@@ -498,6 +556,7 @@
         if (puzzleIndex >= puzzles.length) {
           record.puzzleCompleted = true;
           persist(); makeShareCard(); renderRecords();
+          emitRankingEvent("bologna:arcade-score", { game: "puzzle", result: { completed: true } });
         }
         renderPuzzle();
       } else {
@@ -509,13 +568,15 @@
     if (puzzleAnswer) puzzleAnswer.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); submitPuzzle(); } });
     if (puzzleHint) puzzleHint.addEventListener("click", function () {
       if (puzzleIndex >= puzzles.length) return;
+      beginPuzzleChallenge();
       if (hintsUsed < 3) hintsUsed += 1;
       hintLevel.textContent = "提示 " + hintsUsed + " / 3";
       hintText.textContent = puzzles[puzzleIndex].hints[hintsUsed - 1];
       hintText.hidden = false;
       if (hintsUsed >= 3) puzzleHint.disabled = true;
     });
-    if (puzzleReplay) puzzleReplay.addEventListener("click", function () { puzzleIndex = 0; hintsUsed = 0; renderPuzzle(); });
+    if (puzzleReplay) puzzleReplay.addEventListener("click", function () { puzzleIndex = 0; hintsUsed = 0; puzzleChallengeRequested = false; beginPuzzleChallenge(); renderPuzzle(); });
+    if (puzzleAnswer) puzzleAnswer.addEventListener("focus", beginPuzzleChallenge);
 
     renderRecords();
     if (record.puzzleCompleted) {
@@ -529,7 +590,7 @@
       if (app.hidden) return;
       app.hidden = true;
       closed.hidden = false;
-      document.documentElement.classList.remove("arcade-active");
+      document.documentElement.classList.remove("arcade-active", "arcade-readonly");
       timeStartedAt = null;
       if (timeStart) timeStart.disabled = true;
       if (timeStop) timeStop.disabled = true;
@@ -539,6 +600,16 @@
     function checkSeason() {
       var currentPhase = seasonPhase(new Date());
       if (currentPhase === "normal") { closeSeason(); return; }
+      if (currentPhase === "read-only") {
+        if (!document.documentElement.classList.contains("arcade-readonly")) {
+          timeStartedAt = null;
+          if (timeStart) timeStart.disabled = true;
+          if (timeStop) timeStop.disabled = true;
+          if (candyState) resetCandy();
+          applyReadOnlyView();
+        }
+        return;
+      }
       if (seasonLabel) seasonLabel.textContent = currentPhase === "afterparty" ? "HALLOWEEN AFTERPARTY · NOV 2026" : "HALLOWEEN ARCADE · OCT 2026";
     }
     seasonTimer = window.setInterval(checkSeason, 60000);
