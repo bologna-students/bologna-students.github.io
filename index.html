@@ -472,8 +472,9 @@
       filter: drop-shadow(0 10px 12px rgba(0, 0, 0, .42));
     }
     html.halloween-edition .frog-a-pumpkin { display: block; width: 100%; height: 100%; }
-    html.halloween-edition .frog-a-art { position: absolute; inset: 0; z-index: 1; }
+    html.halloween-edition .frog-a-art { position: absolute; inset: 0; z-index: 1; padding: 0; border: 0; appearance: none; background: transparent; cursor: pointer; pointer-events: auto; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     html.halloween-edition .frog-a-art > img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    html.halloween-edition .frog-a-art:focus-visible { outline: 2px dashed #d6e98f; outline-offset: 2px; border-radius: 45%; }
     html.halloween-edition .frog-egg-peek {
       position: absolute; z-index: 2; top: -2px; right: 0; display: block; width: 36px; height: 28px;
       object-fit: contain; opacity: 0; transform: translateY(3px) scale(.94); transform-origin: 50% 90%;
@@ -548,7 +549,14 @@
         ogDescription: "博洛尼亚学生生活指南 · Halloween Edition 2026",
         themeColor: "#17131f"
       };
-      function isHalloweenDate() {
+      var afterparty = {
+        title: "Halloween Afterparty 2026｜博洛尼亚学生生活指南",
+        description: "Bologna Students Halloween Afterparty 2026 · 怪奇十一月仍可参与六蛙搜查与小游戏，活动信息按日期更新。",
+        ogTitle: "Halloween Afterparty 2026 · Bologna Students",
+        ogDescription: "博洛尼亚学生生活指南 · Halloween Afterparty · 怪奇十一月",
+        themeColor: "#17131f"
+      };
+      function seasonPhase() {
         try {
           var parts = new Intl.DateTimeFormat("en-GB", {
             timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit"
@@ -556,15 +564,22 @@
           var values = {};
           parts.forEach(function (part) { values[part.type] = part.value; });
           var year = Number(values.year), month = Number(values.month), day = Number(values.day);
-          return year === 2026 && month === 10 && day >= 20 && day <= 31;
+          if (year !== 2026) return "normal";
+          if (month === 10 && day >= 20) return "halloween";
+          if (month === 11) return "afterparty";
+          return "normal";
         } catch (_) {
-          return false;
+          return "normal";
         }
       }
       function applyTheme() {
-        var active = isHalloweenDate();
-        var copy = active ? seasonal : normal;
+        var phase = seasonPhase();
+        var active = phase !== "normal";
+        var copy = phase === "afterparty" ? afterparty : (active ? seasonal : normal);
+        root.dataset.halloweenPhase = phase;
         root.classList.toggle("halloween-edition", active);
+        var badge = document.querySelector(".halloween-edition-tag");
+        if (badge) badge.textContent = phase === "afterparty" ? "HALLOWEEN AFTERPARTY · NOV 2026" : "HALLOWEEN EDITION · 20—31 OCT 2026";
         document.title = copy.title;
         if (description) description.content = copy.description;
         if (ogTitle) ogTitle.content = copy.ogTitle;
@@ -572,6 +587,7 @@
         if (theme) theme.content = copy.themeColor;
       }
       applyTheme();
+      document.addEventListener("DOMContentLoaded", applyTheme);
       window.setInterval(applyTheme, 60000);
       document.addEventListener("visibilitychange", function () {
         if (!document.hidden) applyTheme();
@@ -595,7 +611,7 @@
       filter: brightness(1.15) drop-shadow(0 0 7px rgba(255, 188, 94, .8)) drop-shadow(0 0 19px rgba(240, 116, 48, .48));
       transform: scale(1.035);
     }
-    html.halloween-edition .frog-a-art { pointer-events: none; }
+    html.halloween-edition .frog-a-art { pointer-events: auto; }
     html.halloween-edition .filter-egg-web { display: none; width: 11px; height: 11px; margin-left: 3px; color: #ffc080; line-height: 1; }
     html.halloween-edition .filter-egg-web svg { display: block; width: 100%; height: 100%; }
     html.halloween-edition .filter-chip.is-active:not([data-filter="*"]) .filter-egg-web { display: inline-block; }
@@ -639,7 +655,163 @@
       html.halloween-edition .frog-pumpkin-trigger.is-lit { transform: none; }
     }
   </style>
-  </head>
+  <style id="halloween-hidden-reward-eggs">
+    .treat-bag-egg, .pause-cat-reward, .search-treat-reward, .halloween-treat-tableau { display: none; }
+    html.halloween-edition .treat-bag-egg { position: relative; display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; margin-left: -4px; padding: 5px; border: 0; border-radius: 50%; color: #d5a56a; background: transparent; opacity: .38; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    html.halloween-edition .treat-bag-egg:focus-visible { opacity: 1; outline: 2px solid #d6e98f; outline-offset: 2px; }
+    html.halloween-edition .treat-bag-art { display: block; width: 21px; height: 21px; transition: filter .2s ease, transform .2s ease; }
+    html.halloween-edition .treat-bag-egg.is-discovered { opacity: 1; }
+    html.halloween-edition .treat-bag-egg.is-discovered .treat-bag-art { animation: treat-bag-rustle .42s ease-in-out 3; filter: drop-shadow(0 0 5px rgba(255, 193, 112, .58)); }
+    html.halloween-edition .treat-cookie-reveal { position: absolute; top: -20px; right: 4px; display: block; width: 24px; height: 24px; opacity: 0; transform: translate(0, 9px) scale(.2) rotate(-18deg); transition: opacity .16s ease, transform .42s cubic-bezier(.2,.85,.3,1.25); pointer-events: none; }
+    html.halloween-edition .treat-cookie-reveal svg { display: block; width: 100%; height: 100%; }
+    html.halloween-edition .treat-bag-egg.is-discovered .treat-cookie-reveal { opacity: 1; transform: translate(0, -3px) scale(1) rotate(12deg); }
+    html.halloween-edition #category-5 .section-heading { position: relative; }
+    html.halloween-edition .pause-cat-reward { display: block; position: absolute; top: 0; right: clamp(70px, 19vw, 108px); z-index: 2; width: 34px; height: 34px; opacity: 0; visibility: hidden; pointer-events: none; }
+    html.halloween-edition .pause-cat-art { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 2px 5px rgba(228, 165, 98, .28)); }
+    html.halloween-edition .pause-cat-head { opacity: 0; transform: translateY(5px) scale(.94); transform-box: fill-box; transform-origin: center; }
+    html.halloween-edition .pause-cat-eyes { opacity: 0; transform-box: fill-box; transform-origin: center; }
+    html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-reward { opacity: .98; visibility: visible; }
+    html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-eyes { animation: midnight-cat-eyes 2.7s ease-in-out both; }
+    html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-head { animation: midnight-cat-head 2.35s ease-in-out .35s both; }
+    html.halloween-edition .search-treat-reward { display: inline-flex; align-items: center; gap: 1px; width: 0; height: 15px; margin-left: 0; overflow: hidden; opacity: 0; vertical-align: -3px; transition: width .18s ease, margin-left .18s ease, opacity .18s ease; }
+    html.halloween-edition .search-treat-reward svg { flex: 0 0 10px; width: 10px; height: 12px; overflow: visible; transform: translateY(3px) rotate(-12deg); opacity: 0; }
+    html.halloween-edition .search-treat-reward svg:nth-child(2) { transform: translateY(3px) rotate(8deg); }
+    html.halloween-edition .search-treat-reward svg:nth-child(3) { transform: translateY(3px) rotate(-4deg); }
+    html.halloween-edition .tools.search-treat-earned .search-treat-reward { width: 32px; margin-left: 3px; opacity: 1; overflow: visible; }
+    html.halloween-edition .tools.search-treat-earned .search-treat-reward svg { animation: candy-bounce .62s ease-out both; }
+    html.halloween-edition .tools.search-treat-earned .search-treat-reward svg:nth-child(2) { animation-delay: .08s; }
+    html.halloween-edition .tools.search-treat-earned .search-treat-reward svg:nth-child(3) { animation-delay: .15s; }
+    html.halloween-edition .halloween-treat-tableau { display: block; width: 84px; height: 21px; margin-top: 6px; opacity: .72; }
+    html.halloween-edition .halloween-treat-tableau svg { display: block; width: 100%; height: 100%; }
+    @keyframes treat-bag-rustle { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 70% { transform: rotate(7deg); } }
+    @keyframes midnight-cat-eyes { 0% { opacity: 0; transform: translateY(3px) scale(.82); } 8%,22% { opacity: 1; transform: translateY(0) scale(1); } 59% { opacity: 1; transform: scaleY(1); } 62% { opacity: 1; transform: scaleY(.12); } 66%,78% { opacity: .98; transform: scaleY(1); } 100% { opacity: 0; transform: translateY(2px) scale(.92); } }
+    @keyframes midnight-cat-head { 0%,14% { opacity: 0; transform: translateY(6px) scale(.9); } 38%,68% { opacity: 1; transform: translateY(0) scale(1) rotate(-1deg); } 78% { opacity: 1; transform: translateY(0) scale(1) rotate(2deg); } 100% { opacity: 0; transform: translateY(7px) scale(.92); } }
+    @keyframes candy-bounce { 0% { opacity: 0; transform: translateY(3px) rotate(-12deg) scale(.5); } 60% { opacity: 1; transform: translateY(-3px) rotate(8deg) scale(1.12); } 100% { opacity: .9; transform: translateY(0) rotate(0) scale(1); } }
+    @media (max-width: 600px) {
+      html.halloween-edition .treat-bag-egg { flex-basis: 44px; width: 44px; height: 44px; margin-left: -6px; padding: 10px; }
+      html.halloween-edition .treat-bag-art { width: 21px; height: 21px; }
+      html.halloween-edition .pause-cat-reward { top: 0; right: clamp(70px, 19vw, 108px); bottom: auto; width: 32px; height: 32px; }
+      html.halloween-edition .halloween-treat-tableau { width: 76px; height: 20px; }
+      html.halloween-edition .search-treat-reward svg { flex-basis: 9px; width: 9px; }
+      html.halloween-edition .tools.search-treat-earned .search-treat-reward { width: 29px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html.halloween-edition .treat-bag-art, html.halloween-edition .treat-cookie-reveal, html.halloween-edition .search-treat-reward { transition: none !important; }
+      html.halloween-edition .treat-bag-egg.is-discovered .treat-bag-art, html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-eyes, html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-head, html.halloween-edition .tools.search-treat-earned .search-treat-reward svg { animation: none !important; }
+      html.halloween-edition .treat-cookie-reveal { transform: translate(0, -3px) scale(1) rotate(0); }
+      html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-reward { opacity: .98; visibility: visible; transform: none; }
+      html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-eyes, html.halloween-edition #category-5 .section-heading.ghost-reward-active .pause-cat-head { opacity: 1; transform: none; }
+    }
+  </style>
+  <style id="halloween-community-hub-styles">
+    #halloween-community-hub { display: none; }
+    html.halloween-edition #halloween-community-hub {
+      display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: 12px;
+      width: min(calc(100% - 40px), 1120px); margin: 0 auto 22px;
+    }
+    html.halloween-edition .halloween-hub-card {
+      min-width: 0; border: 1px solid rgba(240, 155, 93, .28); border-radius: 14px;
+      color: #f8ecdc; background: linear-gradient(145deg, rgba(49, 35, 52, .92), rgba(31, 26, 39, .96));
+      box-shadow: 0 8px 20px rgba(0, 0, 0, .16);
+    }
+    html.halloween-edition .halloween-hub-card > summary {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px;
+      padding: 10px 14px; color: #fff0dc; font: 700 14px/1.35 Georgia, "Noto Serif SC", serif;
+      cursor: pointer; list-style: none; touch-action: manipulation;
+    }
+    html.halloween-edition .halloween-hub-card > summary::-webkit-details-marker { display: none; }
+    html.halloween-edition .halloween-hub-card > summary::after { content: "+"; color: #f3a15e; font: 700 20px/1 Arial, sans-serif; }
+    html.halloween-edition .halloween-hub-card[open] > summary::after { content: "−"; }
+    html.halloween-edition .halloween-hub-card > summary:focus-visible,
+    html.halloween-edition .collection-reset:focus-visible,
+    html.halloween-edition .completion-card-toggle:focus-visible,
+    html.halloween-edition .frog-collection-link:focus-visible { outline: 2px solid #d6e98f; outline-offset: 2px; }
+    html.halloween-edition .hub-count {
+      flex: 0 0 auto; padding: 4px 8px; border: 1px solid rgba(246, 183, 116, .34); border-radius: 999px;
+      color: #ffd39d; background: rgba(166, 66, 45, .2); font: 700 11px/1.1 system-ui, sans-serif;
+    }
+    html.halloween-edition .halloween-hub-body { padding: 0 14px 14px; border-top: 1px solid rgba(245, 225, 203, .12); }
+    html.halloween-edition .hub-intro,
+    html.halloween-edition .hub-disclaimer { margin: 10px 0; color: #d2c1b0; font-size: 11px; line-height: 1.55; }
+    html.halloween-edition .collection-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+    html.halloween-edition .collection-slot {
+      display: grid; place-items: center; align-content: center; gap: 4px; min-width: 0; min-height: 76px;
+      border: 1px dashed rgba(235, 176, 112, .3); border-radius: 10px; background: rgba(19, 16, 27, .48);
+      color: #a99a90; font: 600 10px/1.3 system-ui, sans-serif; text-align: center;
+    }
+    html.halloween-edition .collection-slot.is-found { border-style: solid; border-color: rgba(240, 164, 88, .62); color: #f4d9b6; background: rgba(82, 52, 50, .45); }
+    html.halloween-edition .collection-slot img { display: block; width: 50px; height: 45px; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,.3)); }
+    html.halloween-edition .collection-feedback { min-height: 20px; margin: 7px 0; color: #f5bf7c; font-size: 11px; line-height: 1.5; }
+    html.halloween-edition .collection-reset,
+    html.halloween-edition .completion-card-toggle,
+    html.halloween-edition .frog-collection-link {
+      min-height: 44px; padding: 8px 12px; border: 1px solid rgba(242, 170, 99, .42); border-radius: 999px;
+      color: #ffe3bf; background: rgba(137, 66, 48, .2); font: 650 11px/1.3 system-ui, sans-serif;
+      cursor: pointer; touch-action: manipulation;
+    }
+    html.halloween-edition .collection-reset { border-color: rgba(242, 224, 205, .18); color: #cdbeb0; background: transparent; }
+    html.halloween-edition .frog-hunt-found { filter: drop-shadow(0 0 7px rgba(255, 191, 102, .65)); }
+    html.halloween-edition .halloween-frog-c { position: relative; pointer-events: none; }
+    html.halloween-edition .frog-c-collect {
+      position: absolute; z-index: 2; right: 0; bottom: 0; width: 98px; height: 108px; padding: 0;
+      border: 0; border-radius: 42%; background: transparent; cursor: pointer; pointer-events: auto;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    html.halloween-edition .frog-c-collect:focus-visible { outline: 2px dashed #d6e98f; outline-offset: -2px; }
+    html.halloween-edition .frog-c-collect.frog-hunt-found { box-shadow: inset 0 0 0 2px rgba(255, 197, 111, .7); }
+    html.halloween-edition .completion-card {
+      margin: 12px 0; padding: 18px 16px; border: 1px solid rgba(250, 192, 107, .72); border-radius: 14px;
+      color: #372238; text-align: center; background: radial-gradient(circle at 82% 10%, #ffe5a8, transparent 28%), linear-gradient(145deg, #fff4d8, #edc99e);
+      box-shadow: 0 8px 24px rgba(10, 7, 14, .28);
+    }
+    html.halloween-edition .completion-card h3 { margin: 0 0 6px; color: #572d36; font: 800 19px/1.2 Georgia, "Noto Serif SC", serif; }
+    html.halloween-edition .completion-card p { margin: 5px 0; color: #503b40; font-size: 11px; line-height: 1.5; }
+    html.halloween-edition .completion-frog-seal { display: flex; justify-content: center; gap: 3px; margin: 10px 0; }
+    html.halloween-edition .completion-frog-seal img { width: 34px; height: 34px; object-fit: contain; }
+    html.halloween-edition .completion-code { color: #7a3c35 !important; font: 800 11px/1.3 ui-monospace, monospace !important; letter-spacing: .08em; }
+    html.halloween-edition .event-date-checked { margin: 10px 0 0; color: #a99482; font-size: 10px; line-height: 1.5; }
+    html.halloween-edition .event-category-title { margin: 12px 0 7px; color: #f2ad6e; font: 700 11px/1.3 system-ui, sans-serif; letter-spacing: .04em; }
+    html.halloween-edition .event-card {
+      padding: 10px 0; border-top: 1px solid rgba(245, 225, 203, .12);
+    }
+    html.halloween-edition .event-card h3 { margin: 0 0 5px; color: #fff0dc; font: 700 13px/1.4 Georgia, "Noto Serif SC", serif; }
+    html.halloween-edition .event-card p { margin: 3px 0; color: #d3c3b2; font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+    html.halloween-edition .event-card a { color: #ffc080; text-underline-offset: 2px; }
+    html.halloween-edition .event-card a:focus-visible { outline: 2px solid #d6e98f; outline-offset: 2px; }
+    html.halloween-edition .arcade-entry {
+      grid-column: 1 / -1; display: flex; align-items: center; gap: 11px; min-width: 0; width: 100%;
+      box-sizing: border-box; padding: 11px 14px; border: 1px solid rgba(240, 155, 93, .36); border-radius: 13px;
+      color: #fff0dc; background: linear-gradient(110deg, rgba(107, 49, 48, .45), rgba(39, 31, 48, .92));
+      text-decoration: none; box-shadow: 0 6px 17px rgba(0, 0, 0, .12); touch-action: manipulation;
+    }
+    html.halloween-edition .arcade-entry:hover,
+    html.halloween-edition .arcade-entry:focus-visible { border-color: rgba(255, 190, 116, .7); background-color: rgba(70, 43, 55, .92); }
+    html.halloween-edition .arcade-entry:focus-visible { outline: 2px solid #d6e98f; outline-offset: 2px; }
+    html.halloween-edition .arcade-entry-mark { flex: 0 0 auto; color: #ffc080; font-size: 19px; }
+    html.halloween-edition .arcade-entry-copy { display: grid; gap: 3px; min-width: 0; }
+    html.halloween-edition .arcade-entry-copy strong { font: 700 14px/1.25 Georgia, "Noto Serif SC", serif; }
+    html.halloween-edition .arcade-entry-copy span { color: #d2c1b0; font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+    html.halloween-edition .arcade-entry-cta { flex: 0 0 auto; margin-left: auto; color: #ffd39d; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    html.halloween-edition .event-card.is-past { opacity: .72; }
+    html.halloween-edition .event-past-label { display: inline-block; margin: 4px 0; padding: 3px 7px; border: 1px solid rgba(238, 194, 146, .2); border-radius: 99px; color: #c7b7a8; font-size: 9px; }
+    @media (max-width: 760px) {
+      html.halloween-edition #halloween-community-hub { grid-template-columns: minmax(0, 1fr); width: min(calc(100% - 28px), 560px); gap: 9px; margin-bottom: 18px; }
+      html.halloween-edition .halloween-hub-card > summary { min-height: 46px; padding: 9px 12px; font-size: 13px; }
+      html.halloween-edition .halloween-hub-body { padding-inline: 12px; }
+      html.halloween-edition .frog-c-collect { right: 0; width: 80px; height: 88px; }
+    }
+    @media (max-width: 360px) {
+      html.halloween-edition #halloween-community-hub { width: calc(100% - 20px); }
+      html.halloween-edition .collection-grid { gap: 5px; }
+      html.halloween-edition .collection-slot { min-height: 68px; }
+      html.halloween-edition .collection-slot img { width: 43px; height: 40px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html.halloween-edition .frog-hunt-found { filter: none; }
+      html.halloween-edition .frog-c-collect { scroll-behavior: auto; }
+    }
+  </style>
+</head>
 <body>
   <div class="halloween-atmosphere" aria-hidden="true">
     <span class="halloween-moon"></span>
@@ -662,7 +834,7 @@
       <figure class="halloween-frog-a" id="frog-a-stage" aria-label="Hero Halloween decoration">
         <img class="frog-egg-peek" src="assets/frog-egg-peek.webp" alt="" aria-hidden="true" width="36" height="28" draggable="false">
         <button class="frog-pumpkin-trigger" id="frog-pumpkin-trigger" type="button" aria-label="点亮南瓜灯彩蛋" aria-pressed="false"><svg class="frog-a-pumpkin" viewBox="0 0 72 64" xmlns="http://www.w3.org/2000/svg"><path d="M35 14c-14 0-25 9-26 24-1 13 10 22 27 22s28-9 27-22c-1-14-12-24-28-24Z" fill="#d9652f" stroke="#f5a052" stroke-width="2"/><path d="M34 15c-4 12-4 28 0 43m8-42c4 12 4 28 0 42" fill="none" stroke="#a6422d" stroke-width="2"/><path d="M34 14c-1-6 2-10 7-11" fill="none" stroke="#73904b" stroke-width="4" stroke-linecap="round"/><path d="m22 34 8 5-8 3m28-8-8 5 8 3" fill="#301a22"/><path d="M29 49q7 4 14 0" fill="none" stroke="#301a22" stroke-width="2" stroke-linecap="round"/></svg></button><span id="pumpkin-egg-status" class="frog-silent-status" aria-live="polite"></span>
-        <div class="frog-a-art"><img src="assets/frog-a-halloween.webp" alt=""></div>
+        <button class="frog-a-art" id="frog-a-collect" type="button" aria-label="确认发现一只奶蛙" aria-pressed="false"><img src="assets/frog-a-halloween.webp" alt=""></button>
       </figure>
       </div>
     </header>
@@ -678,7 +850,7 @@
     </div>
     <div class="results-line" aria-live="polite">
       <span id="result-count">53 个地点</span>
-      <span>选择分类或输入关键词</span>
+      <span>选择分类或输入关键词<span class="search-treat-reward" id="search-treat-reward" aria-hidden="true"><svg viewBox="0 0 24 16"><path d="M4 5 1 2v10l3-3m16-4 3-3v10l-3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="4" width="16" height="8" rx="3" fill="#d87545" stroke="#ffd493"/></svg><svg viewBox="0 0 24 16"><path d="M4 5 1 2v10l3-3m16-4 3-3v10l-3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="4" width="16" height="8" rx="3" fill="#a95d7d" stroke="#f3d1bb"/></svg><svg viewBox="0 0 24 16"><path d="M4 5 1 2v10l3-3m16-4 3-3v10l-3-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="4" y="4" width="16" height="8" rx="3" fill="#d4a651" stroke="#ffedc7"/></svg></span></span>
     </div>
   </section>
 
@@ -695,6 +867,90 @@
     <p class="sponsor-hero-note">2026.10.16 新生聚会的历史活动支持，不代表长期赞助；活动合作支持与群友独立推荐分开。</p>
   </section>
   </div>
+
+  <section id="halloween-community-hub" class="shell" aria-label="万圣节线上活动">
+    <details class="halloween-hub-card" id="frog-collection-panel">
+      <summary><span>「六蛙失踪事件」· 搜查册</span><span class="hub-count" id="frog-collection-count" aria-live="polite">0/6</span></summary>
+      <div class="halloween-hub-body">
+        <p class="hub-intro">线上活动免费参与，持续至 11 月 30 日 23:59（Europe/Rome）。遇到奶蛙时轻触确认；进度只保存在此浏览器，不会上传。</p>
+        <div class="collection-grid" id="frog-collection-grid" role="list" aria-label="六格奶蛙搜查册">
+          <div class="collection-slot" role="listitem"><span aria-hidden="true">✧</span><span>待发现</span></div>
+          <div class="collection-slot" role="listitem"><span aria-hidden="true">✧</span><span>待发现</span></div>
+          <div class="collection-slot" role="listitem"><span aria-hidden="true">✧</span><span>待发现</span></div>
+          <div class="collection-slot" role="listitem"><span aria-hidden="true">✧</span><span>待发现</span></div>
+          <div class="collection-slot" role="listitem"><span aria-hidden="true">✧</span><span>待发现</span></div>
+          <div class="collection-slot" role="listitem"><span aria-hidden="true">✧</span><span>待发现</span></div>
+        </div>
+        <p class="collection-feedback" id="frog-collection-feedback" role="status" aria-live="polite">搜查进度仅保存在本机；没有账号、排名或服务器记录。</p>
+        <p class="hub-intro" id="extra-egg-progress">额外秘密发现：0/3（不计入六蛙通关）</p>
+        <button class="completion-card-toggle" id="completion-card-toggle" type="button" hidden>打开通关卡</button>
+        <div class="completion-card" id="completion-card" tabindex="-1" hidden aria-labelledby="completion-card-title">
+          <p>HALLOWEEN SPECIAL · 2026</p>
+          <h3 id="completion-card-title">博洛尼亚奶蛙搜查官</h3>
+          <p>六蛙全部归队 · 搜查任务完成</p>
+          <div class="completion-frog-seal" id="completion-frog-seal" aria-hidden="true"></div>
+          <p>完成日期：<time id="completion-date"></time></p>
+          <p class="completion-code" id="completion-code"></p>
+          <p>本地随机纪念编号，仅供留念，不是可验证的获奖凭证。</p>
+          <p>可直接截屏保存；不需要填写姓名、联系方式或学号。</p>
+        </div>
+        <button class="collection-reset" id="collection-reset" type="button">清除此浏览器的活动进度</button>
+        <p class="hub-disclaimer">进度只保存在当前浏览器；不同浏览器、无痕模式或微信内置浏览器之间可能不共享。若本地存储不可用，进度暂存于当前页面，关闭后可能丢失。参与免费，无固定奖品、奖金或积分排名；微信群内如有惊喜红包，属于组织者自愿安排，不是固定奖金。清除此网站本机存储也会清除进度。</p>
+      </div>
+    </details>
+
+    <details class="halloween-hub-card" id="bologna-halloween-events">
+      <summary><span>Bologna Halloween · 活动情报站</span><span class="hub-count">2026</span></summary>
+      <div class="halloween-hub-body">
+        <p class="hub-intro">仅整理已公开的 2026 年活动信息。出发前请查看主办方最新安排，票价、余票和入场条件可能变化。</p>
+        <h3 class="event-category-title">免费城市体验</h3>
+        <article class="event-card" data-event-end="2026-11-02">
+          <h3>Halloween al Grand Tour Italia · Dolcetto o Scherzetto</h3>
+          <p>日期：10 月周末（含 10 月 31 日；官方活动期至 11 月 2 日）</p>
+          <p>时间：11:00–15:00、18:00–20:00</p>
+          <p>场地：Grand Tour Italia，Via Paolo Canali 8, 40127 Bologna</p>
+          <p>费用：免费。官方说明活动以家庭和儿童体验为主。</p>
+          <p><a href="https://www.grandtouritalia.it/it/dolcetto-o-scherzetto-1" target="_blank" rel="noopener noreferrer">主办方活动说明 ↗</a></p>
+        </article>
+        <h3 class="event-category-title">城市文化体验</h3>
+        <article class="event-card" data-event-end="2026-10-31">
+          <h3>L’Offerta del Diavolo · Vitruvio 城市漫游演出</h3>
+          <p>日期与时间：10 月 30 日 21:00；10 月 31 日 19:00、21:00</p>
+          <p>集合地点：Piazza Galvani 雕像下，Bologna；约 1.5 小时</p>
+          <p>费用：€18；需预约，名额有限；不建议 12 岁以下参加。</p>
+          <p><a href="https://www.vitruvio.emr.it/it/i-nostri-progetti/526-offerta-diavolo.html" target="_blank" rel="noopener noreferrer">主办方活动与预约信息 ↗</a></p>
+        </article>
+        <h3 class="event-category-title">俱乐部派对 · 18+</h3>
+        <article class="event-card" data-event-end="2026-10-31">
+          <h3>DA PAURA! Halloween al Cassero</h3>
+          <p>日期与开始时间：10 月 31 日 23:00</p>
+          <p>场地：Cassero LGBTQIA+ Center，Via Don Giovanni Minzoni 18, 40121 Bologna</p>
+          <p>费用：预售约 €7–€10（限量/票种不同），现场全价 €15；需 Arcigay 会员卡，活动页标注 18+。</p>
+          <p><a href="https://cassero.it/evento/da-paura-2026-20630/" target="_blank" rel="noopener noreferrer">主办方说明 ↗</a> · <a href="https://www.boxerticket.it/eventi/da-paura-halloween-al-cassero/" target="_blank" rel="noopener noreferrer">Boxer Ticket ↗</a></p>
+        </article>
+        <article class="event-card" data-event-end="2026-10-31">
+          <h3>Halloween We Love 2000 · Estragon Club</h3>
+          <p>日期与开始时间：10 月 31 日 23:00（18+）</p>
+          <p>场地：Estragon Club，Via Stalingrado 83, 40128 Bologna</p>
+          <p>费用：€12 + 购票手续费。</p>
+          <p><a href="https://www.estragon.it/en/events/2026-10-31/halloween-we-love-2000" target="_blank" rel="noopener noreferrer">主办方详情与购票入口 ↗</a></p>
+        </article>
+        <article class="event-card" data-event-end="2026-10-31">
+          <h3>Obsession · Erasmus Halloween Night</h3>
+          <p>日期与开始时间：10 月 31 日 23:30（18+）</p>
+          <p>场地：Chalet dei Giardini Margherita，Viale Massimo Meliconi 1, 40125 Bologna</p>
+          <p>费用：€30 起 + 手续费，含 3 杯饮品。</p>
+          <p><a href="https://www.boxerticket.it/eventi/obsession-erasmus-halloween-night/" target="_blank" rel="noopener noreferrer">官方售票页面 ↗</a></p>
+        </article>
+        <p class="event-date-checked">信息核验日期：2026 年 10 月 21 日（Europe/Rome）。Bologna Students 仅整理公开信息，不负责第三方活动组织、票务或现场安排；购买前请再次核实。</p>
+      </div>
+    </details>
+    <a class="arcade-entry" href="arcade.html">
+      <span class="arcade-entry-mark" aria-hidden="true">✦</span>
+      <span class="arcade-entry-copy"><strong>Halloween Arcade 2026</strong><span>午夜十秒 · 南瓜糖果投篮 · Bologna 万圣谜团</span></span>
+      <span class="arcade-entry-cta">进入游戏 ↗</span>
+    </a>
+  </section>
 
   <main class="shell" id="main-content">
     <section class="category-section" id="category-1" data-category="中餐/亚洲餐"><div class="section-heading"><span class="section-index">01</span><h2>中餐/亚洲餐</h2><span class="section-count" data-section-count>15 个地点</span></div><div class="card-grid"><article class="place-card" data-search="Bar Ramen 拉面／中式口味餐食 想吃熟悉口味时，可以试试偏中式的拉面和饭；卤味和冰红茶也被提到。 Bar Ramen 的卤味我个人很推荐。主要做偏中式口味的拉面和饭，也有很多卤味可选，饮料还有冰红茶；想吃点熟悉口味时很适合。"><div class="card-top"><span class="place-type">拉面／中式口味餐食</span></div><div class="place-title-row"><h3>Bar Ramen</h3></div><p class="summary">想吃熟悉口味时，可以试试偏中式的拉面和饭；卤味和冰红茶也被提到。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Guglielmo Marconi 65, Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">Daweid</span><p>Bar Ramen 的卤味我个人很推荐。主要做偏中式口味的拉面和饭，也有很多卤味可选，饮料还有冰红茶；想吃点熟悉口味时很适合。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Bar%20Ramen%2C%20Via%20Guglielmo%20Marconi%2065%2C%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Master Moo 肉夹馍 肉夹馍的香味、酥脆饼皮和入味的肉都得到好评。 非常香的肉夹馍。 超好吃的肉夹馍。饼皮很酥脆，夹心的肉很入味，推荐。"><div class="card-top"><span class="place-type">肉夹馍</span></div><div class="place-title-row"><h3>Master Moo</h3><span class="multi-recommendation-badge" title="多位同学独立正向反馈">多人推荐</span></div><p class="summary">肉夹馍的香味、酥脆饼皮和入味的肉都得到好评。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via dell’Indipendenza 63/A, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B01</span><p>非常香的肉夹馍。</p></li><li><span class="reviewer">群友 B07</span><p>超好吃的肉夹馍。饼皮很酥脆，夹心的肉很入味，推荐。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Master%20Moo%2C%20Via%20dell%E2%80%99Indipendenza%2063/A%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Amole 川菜 Amole 的川菜有人觉得挺好吃；比较少见的是，这家中餐馆由意大利人经营。 老外开的川菜，但是挺好吃的。"><div class="card-top"><span class="place-type">川菜</span></div><div class="place-title-row"><h3>Amole</h3></div><p class="summary">Amole 的川菜有人觉得挺好吃；比较少见的是，这家中餐馆由意大利人经营。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Riva di Reno 7/B, Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B01</span><p>老外开的川菜，但是挺好吃的。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Amole%2C%20Via%20Riva%20di%20Reno%207/B%2C%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Genki Sushi 寿司 更建议工作日去，周末人多时服务可能跟不上。按最近体验，晚餐的 piatti speciali 里有生蚝（限量）和三文鱼刺身（不限量）；午餐的限量项目会更多一些。 推荐周末去。 更建议工作日去，周末人多时服务可能跟不上。晚餐的 piatti speciali 里有生蚝（限量）和三文鱼刺身（不限量）；午餐的限量项目会更多一些。"><div class="card-top"><span class="place-type">寿司</span></div><div class="place-title-row"><h3>Genki Sushi</h3></div><p class="summary">更建议工作日去，周末人多时服务可能跟不上。按最近体验，晚餐的 piatti speciali 里有生蚝（限量）和三文鱼刺身（不限量）；午餐的限量项目会更多一些。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Trattati Comunitari Europei 20, 40127 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B01</span><p>推荐周末去。</p></li><li><span class="reviewer">Daweid</span><p>更建议工作日去，周末人多时服务可能跟不上。晚餐的 piatti speciali 里有生蚝（限量）和三文鱼刺身（不限量）；午餐的限量项目会更多一些。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Genki%20Sushi%2C%20Via%20Trattati%20Comunitari%20Europei%2020%2C%2040127%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Yozone 烧烤自助／寿司 韩式烤肉自助搭配寿司；环境干净舒适、整体体验得到好评，烤肉品类则被认为不算多。 韩式烤肉自助加寿司；整体环境干净舒适，体验很好，但烤肉品类不算特别多。"><div class="card-top"><span class="place-type">烧烤自助／寿司</span></div><div class="place-title-row"><h3>Yozone</h3></div><p class="summary">韩式烤肉自助搭配寿司；环境干净舒适、整体体验得到好评，烤肉品类则被认为不算多。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Milazzo 17/f, 40121 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B06</span><p>韩式烤肉自助加寿司；整体环境干净舒适，体验很好，但烤肉品类不算特别多。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Yozone%2C%20Via%20Milazzo%2017/f%2C%2040121%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="BE&#x27;MO 中式方便面／面食 中式面食味道得到好评，价格和分量则被认为不太匹配。 中式面食味道确实挺不错，只是价格和分量相比稍微有点不对等。"><div class="card-top"><span class="place-type">中式方便面／面食</span></div><div class="place-title-row"><h3>BE&#x27;MO</h3></div><p class="summary">中式面食味道得到好评，价格和分量则被认为不太匹配。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Giuseppe Petroni 21/A, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B06</span><p>中式面食味道确实挺不错，只是价格和分量相比稍微有点不对等。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=BE%27MO%2C%20Via%20Giuseppe%20Petroni%2021/A%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Xiang Show 川菜／中餐 主打川菜，也有不辣菜可选；味道得到好评。 专门做川菜，觉得味道好；不能吃辣的人也有不辣菜品可选。"><div class="card-top"><span class="place-type">川菜／中餐</span></div><div class="place-title-row"><h3>Xiang Show</h3></div><p class="summary">主打川菜，也有不辣菜可选；味道得到好评。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via del Borgo di San Pietro 45/A, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B06</span><p>专门做川菜，觉得味道好；不能吃辣的人也有不辣菜品可选。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Xiang%20Show%2C%20Via%20del%20Borgo%20di%20San%20Pietro%2045/A%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Ristorante Cinese Xiao Shitang 中餐／烧烤 烧烤得到推荐；另有投稿觉得菜品不易踩雷、价格相对不贵。座位不多，建议提前预约。 小食堂 还有个叫小食堂的，味道还行。 这个真的好吃，就是远了一丢丢。 小食堂的烧烤算是 Bologna 比较正经的了。 还不错的。 一直听说好吃，但一直没去过。 基本每道菜都不容易踩雷。烧烤很好吃，价格相对不算贵。座位不多，建议提前预约。"><div class="card-top"><span class="place-type">中餐／烧烤</span></div><div class="place-title-row"><h3>Ristorante Cinese Xiao Shitang</h3><span class="multi-recommendation-badge" title="多位同学独立正向反馈">多人推荐</span></div><p class="original-name">群聊中称作 小食堂</p><p class="summary">烧烤得到推荐；另有投稿觉得菜品不易踩雷、价格相对不贵。座位不多，建议提前预约。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Francesco Zanardi 127, 40131 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B02</span><p>还有个叫小食堂的，味道还行。</p></li><li><span class="reviewer">群友 B07</span><p>这个真的好吃，就是远了一丢丢。</p></li><li><span class="reviewer">Daweid</span><p>小食堂的烧烤算是 Bologna 比较正经的了。</p></li><li><span class="reviewer">群友 B01</span><p>还不错的。</p></li><li><span class="reviewer">群友 B05</span><p>一直听说好吃，但一直没去过。</p></li><li><span class="reviewer">群友 B07</span><p>基本每道菜都不容易踩雷。烧烤很好吃，价格相对不算贵。座位不多，建议提前预约。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Ristorante%20Cinese%20Xiao%20Shitang%2C%20Via%20Francesco%20Zanardi%20127%2C%2040131%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Gusto Chengdu 中餐／成都菜 成都菜得到两位同学的好评，不过其中一位觉得价格偏贵。 我个人觉得 Gusto Chengdu 也挺好吃的。 成都的也挺好吃，就是太贵了。 分享时成都人均约 25–30 欧。"><div class="card-top"><span class="place-type">中餐／成都菜</span></div><div class="place-title-row"><h3>Gusto Chengdu</h3><span class="multi-recommendation-badge" title="多位同学独立正向反馈">多人推荐</span></div><p class="summary">成都菜得到两位同学的好评，不过其中一位觉得价格偏贵。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via De’ Giudei 6/F, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B02</span><p>我个人觉得 Gusto Chengdu 也挺好吃的。</p></li><li><span class="reviewer">群友 B01</span><p>成都的也挺好吃，就是太贵了。</p></li><li><span class="reviewer">Daweid</span><p>分享时成都人均约 25–30 欧。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Gusto%20Chengdu%2C%20Via%20De%E2%80%99%20Giudei%206/F%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Ristorante Giapponese Yoma 寿司套餐 寿司套餐是这里被提到的选择；目前没有更多用餐体验评价。 提到这家有寿司套餐。"><div class="card-top"><span class="place-type">寿司套餐</span></div><div class="place-title-row"><h3>Ristorante Giapponese Yoma</h3></div><p class="summary">寿司套餐是这里被提到的选择；目前没有更多用餐体验评价。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Fossalta 3, 40125 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B01</span><p>提到这家有寿司套餐。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Ristorante%20Giapponese%20Yoma%2C%20Via%20Fossalta%203%2C%2040125%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="DON BEI Ristorante 刘宝东北家常菜 东北菜 菜量和性价比得到好评，店内环境则被认为比较一般。 刘宝东东北菜 菜量大、菜品多，在 Bologna 算性价比最高的之一；缺点是环境相对一般。"><div class="card-top"><span class="place-type">东北菜</span></div><div class="place-title-row"><h3>DON BEI Ristorante 刘宝东北家常菜</h3></div><p class="original-name">群聊中称作 刘宝东东北菜</p><p class="summary">菜量和性价比得到好评，店内环境则被认为比较一般。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via del Lavoro 21c, 40127 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">Daweid</span><p>菜量大、菜品多，在 Bologna 算性价比最高的之一；缺点是环境相对一般。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=DON%20BEI%20Ristorante%20%E5%88%98%E5%AE%9D%E4%B8%9C%E5%8C%97%E5%AE%B6%E5%B8%B8%E8%8F%9C%2C%20Via%20del%20Lavoro%2021c%2C%2040127%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Ristorante Giapponese Umami 寿司／日料 周末体验评价两极：一位不推荐周末去，另一位恰好觉得周末最好吃；也有人把它列作寿司备选。 推荐 Umami，别周末来，周末不怎么好吃。 周末最好吃了。 回复说自己也觉得如此（具体指向可能为周末最好吃）。 看到 Umami 的讨论后说原以为博洛尼亚没有好吃的寿司，准备去尝尝。"><div class="card-top"><span class="place-type">寿司／日料</span></div><div class="place-title-row"><h3>Ristorante Giapponese Umami</h3></div><p class="summary">周末体验评价两极：一位不推荐周末去，另一位恰好觉得周末最好吃；也有人把它列作寿司备选。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Zanardi 14, 40131 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B01</span><p>推荐 Umami，别周末来，周末不怎么好吃。</p></li><li><span class="reviewer">Daweid</span><p>周末最好吃了。</p></li><li><span class="reviewer">群友 B05</span><p>回复说自己也觉得如此（具体指向可能为周末最好吃）。</p></li><li><span class="reviewer">群友 B06</span><p>看到 Umami 的讨论后说原以为博洛尼亚没有好吃的寿司，准备去尝尝。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Ristorante%20Giapponese%20Umami%2C%20Via%20Zanardi%2014%2C%2040131%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Singapore Asian Fusion 亚洲融合菜 午餐三道菜套餐在投稿时约 €15（含一瓶水）；味道与甜点都得到很高评价。 被惊艳到的一家店。投稿时中午有约 €15 的三道菜套餐，另有一瓶水；味道非常棒，甜点也好看、好吃。"><div class="card-top"><span class="place-type">亚洲融合菜</span></div><div class="place-title-row"><h3>Singapore Asian Fusion</h3></div><p class="summary">午餐三道菜套餐在投稿时约 €15（含一瓶水）；味道与甜点都得到很高评价。</p><dl class="meta-list"><div class="meta"><dt>价格</dt><dd>投稿时午餐三道菜套餐约 €15（含水）</dd></div><div class="meta"><dt>地址</dt><dd>Via Marsala 17, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>被惊艳到的一家店。投稿时中午有约 €15 的三道菜套餐，另有一瓶水；味道非常棒，甜点也好看、好吃。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Singapore%20Asian%20Fusion%2C%20Via%20Marsala%2017%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Ristorante TANG 中餐 菜量大、口味偏辣；蒜香排骨得到特别推荐，一个人去可能不宜点太多。 唐朝 菜量很大，口味偏辣，蒜香排骨很推荐；一个人去可能点不了太多。"><div class="card-top"><span class="place-type">中餐</span></div><div class="place-title-row"><h3>Ristorante TANG</h3></div><p class="original-name">群聊中称作 唐朝</p><p class="summary">菜量大、口味偏辣；蒜香排骨得到特别推荐，一个人去可能不宜点太多。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Stalingrado 16/2E, 40128 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>菜量很大，口味偏辣，蒜香排骨很推荐；一个人去可能点不了太多。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Ristorante%20TANG%2C%20Via%20Stalingrado%2016/2E%2C%2040128%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Hanso 韩国烤肉 韩国烤肉和特色菜选择较多；店员会帮忙烤肉，海鲜饼得到推荐。 肉类选择很多，店员会帮忙烤肉，也有不少韩国特色菜；海鲜饼很推荐。"><div class="card-top"><span class="place-type">韩国烤肉</span></div><div class="place-title-row"><h3>Hanso</h3></div><p class="summary">韩国烤肉和特色菜选择较多；店员会帮忙烤肉，海鲜饼得到推荐。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via delle Belle Arti 20/C, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>肉类选择很多，店员会帮忙烤肉，也有不少韩国特色菜；海鲜饼很推荐。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Hanso%2C%20Via%20delle%20Belle%20Arti%2020/C%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article></div></section><section class="category-section" id="category-2" data-category="意餐/本地吃喝"><div class="section-heading"><span class="section-index">02</span><h2>意餐/本地吃喝</h2><span class="section-count" data-section-count>13 个地点</span></div><div class="card-grid"><article class="place-card" data-search="Roadhouse Restaurant Bologna Stalingrado 牛排／烧烤餐厅 周五炸鸡、周日烤排骨是分享时提到的自助活动，具体安排可能变化。 周五、周日有自助，周五炸鸡、周日烤排骨。"><div class="card-top"><span class="place-type">牛排／烧烤餐厅</span></div><div class="place-title-row"><h3>Roadhouse Restaurant Bologna Stalingrado</h3></div><p class="summary">周五炸鸡、周日烤排骨是分享时提到的自助活动，具体安排可能变化。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Stalingrado 40, 40128 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B04</span><p>周五、周日有自助，周五炸鸡、周日烤排骨。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Roadhouse%20Restaurant%20Bologna%20Stalingrado%2C%20Via%20Stalingrado%2040%2C%2040128%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Impero Caprarie 甜品／西式餐食／aperitivo + buffet 甜品、西点和晚间 aperitivo + buffet 是这条分享的重点；西式菜的摆盘和味道也得到好评。 主打甜品西点，晚上有不错的 aperitivo + buffet；菜品以西式为主，摆盘精致、味道在线。"><div class="card-top"><span class="place-type">甜品／西式餐食／aperitivo + buffet</span></div><div class="place-title-row"><h3>Impero Caprarie</h3></div><p class="summary">甜品、西点和晚间 aperitivo + buffet 是这条分享的重点；西式菜的摆盘和味道也得到好评。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Caprarie 4, 40124 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B06</span><p>主打甜品西点，晚上有不错的 aperitivo + buffet；菜品以西式为主，摆盘精致、味道在线。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Impero%20Caprarie%2C%20Via%20Caprarie%204%2C%2040124%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Mò! Mortadella Lab 意式火腿三明治／街头小吃 mortadella 三明治是这里被推荐的街头小吃；分享时约六七欧一个，被评价为个头大、馅料足。 六七欧能买到一个比两个拳头还大的意式火腿三明治，料给得很实在。"><div class="card-top"><span class="place-type">意式火腿三明治／街头小吃</span></div><div class="place-title-row"><h3>Mò! Mortadella Lab</h3></div><p class="summary">mortadella 三明治是这里被推荐的街头小吃；分享时约六七欧一个，被评价为个头大、馅料足。</p><dl class="meta-list"><div class="meta"><dt>价格</dt><dd>约 6–7 欧一个三明治</dd></div><div class="meta"><dt>地址</dt><dd>Via San Vitale 4/F, 40125 Bologna BO；Via Volturno 7/A, Bologna BO（分店）</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B06</span><p>六七欧能买到一个比两个拳头还大的意式火腿三明治，料给得很实在。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=M%C3%B2%21%20Mortadella%20Lab%2C%20Via%20San%20Vitale%204%2Ff%2C%20Bologna" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Pizza Casa 披萨切片 现烤玛格丽特切片在分享时约 3 欧，大学城性价比得到好评；饼底薄、口感偏脆也被提醒为缺点。 3 欧能买到现烤玛格丽特切片，大学城性价比高；饼底薄、口感偏脆。"><div class="card-top"><span class="place-type">披萨切片</span></div><div class="place-title-row"><h3>Pizza Casa</h3></div><p class="summary">现烤玛格丽特切片在分享时约 3 欧，大学城性价比得到好评；饼底薄、口感偏脆也被提醒为缺点。</p><dl class="meta-list"><div class="meta"><dt>价格</dt><dd>3 欧一片玛格丽特披萨</dd></div><div class="meta"><dt>地址</dt><dd>Via delle Belle Arti 6/a, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B06</span><p>3 欧能买到现烤玛格丽特切片，大学城性价比高；饼底薄、口感偏脆。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Pizza%20Casa%2C%20Via%20delle%20Belle%20Arti%206/a%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Rostelle and Co. Abruzzese 烤串／bruschette 手工羊肉串与牛肉串分别得到好评；分享里还有鸡肉串、内脏串和六种口味的 bruschette。 这是我在 Bologna 的自留款饭店。手工羊肉串最好吃；还有鸡肉串、内脏串，bruschette 也好吃，有六种口味可选。 那牛肉串真好吃。"><div class="card-top"><span class="place-type">Abruzzese 烤串／bruschette</span></div><div class="place-title-row"><h3>Rostelle and Co.</h3><span class="multi-recommendation-badge" title="多位同学独立正向反馈">多人推荐</span></div><p class="summary">手工羊肉串与牛肉串分别得到好评；分享里还有鸡肉串、内脏串和六种口味的 bruschette。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Mazzini 119e, 40139 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B05</span><p>这是我在 Bologna 的自留款饭店。手工羊肉串最好吃；还有鸡肉串、内脏串，bruschette 也好吃，有六种口味可选。</p></li><li><span class="reviewer">群友 B02</span><p>那牛肉串真好吃。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Rostelle%20and%20Co.%2C%20Via%20Mazzini%20119e%2C%2040139%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Trattoria Mulino Bruciato Trattoria／意餐 这家意餐被评价为便宜又好吃。 便宜又好吃的意餐。"><div class="card-top"><span class="place-type">Trattoria／意餐</span></div><div class="place-title-row"><h3>Trattoria Mulino Bruciato</h3></div><p class="summary">这家意餐被评价为便宜又好吃。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via della Selva Pescarola 50, 40131 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B01</span><p>便宜又好吃的意餐。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Trattoria%20Mulino%20Bruciato%2C%20Via%20della%20Selva%20Pescarola%2050%2C%2040131%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Osteria dell&#x27;Orsa 意餐／Osteria 肉酱千层面得到推荐；店外常排队，开门前约 15 分钟到是投稿时的少等经验。 每次路过常看到长队。投稿时不接受预约；想少排队，可以在开门前约 15 分钟到。肉酱千层面强烈推荐。"><div class="card-top"><span class="place-type">意餐／Osteria</span></div><div class="place-title-row"><h3>Osteria dell&#x27;Orsa</h3></div><p class="summary">肉酱千层面得到推荐；店外常排队，开门前约 15 分钟到是投稿时的少等经验。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Mentana 1/F, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>每次路过常看到长队。投稿时不接受预约；想少排队，可以在开门前约 15 分钟到。肉酱千层面强烈推荐。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Osteria%20dell%27Orsa%2C%20Via%20Mentana%201/F%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Hamerica&#x27;s 汉堡 汉堡份量和味道得到好评，价格则被认为偏高。 汉堡很大，味道不错，不过价格也偏贵。"><div class="card-top"><span class="place-type">汉堡</span></div><div class="place-title-row"><h3>Hamerica&#x27;s</h3></div><p class="summary">汉堡份量和味道得到好评，价格则被认为偏高。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Santo Stefano 8/A, 40125 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>汉堡很大，味道不错，不过价格也偏贵。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Hamerica%27s%2C%20Via%20Santo%20Stefano%208/A%2C%2040125%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="L&#x27;Antica Pizzeria da Michele 那不勒斯风格披萨 那不勒斯风格披萨份量大、饼底薄；适合喜欢这类披萨的人。 Da Michele 经典披萨连锁店；披萨很大、很薄，喜欢那不勒斯风格的人可以试试。"><div class="card-top"><span class="place-type">那不勒斯风格披萨</span></div><div class="place-title-row"><h3>L&#x27;Antica Pizzeria da Michele</h3></div><p class="original-name">群聊中称作 Da Michele</p><p class="summary">那不勒斯风格披萨份量大、饼底薄；适合喜欢这类披萨的人。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Piazza San Martino 3/B, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>经典披萨连锁店；披萨很大、很薄，喜欢那不勒斯风格的人可以试试。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=L%27Antica%20Pizzeria%20da%20Michele%2C%20Piazza%20San%20Martino%203/B%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="McDonald&#x27;s Bologna VIII Agosto 快餐／汉堡 市中心门店；投稿时曾使用 App 套餐折扣码，优惠可能变化。 McDonald&#x27;s 麦当劳百吃不腻；投稿时在这家市中心门店用过 App 套餐折扣码。"><div class="card-top"><span class="place-type">快餐／汉堡</span></div><div class="place-title-row"><h3>McDonald&#x27;s Bologna VIII Agosto</h3></div><p class="original-name">群聊中称作 McDonald&#x27;s</p><p class="summary">市中心门店；投稿时曾使用 App 套餐折扣码，优惠可能变化。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Piazza dell&#x27;8 Agosto 31, 40128 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>麦当劳百吃不腻；投稿时在这家市中心门店用过 App 套餐折扣码。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=McDonald%27s%20Bologna%20VIII%20Agosto%2C%20Piazza%20dell%278%20Agosto%2031%2C%2040128%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Beirut Snack Kebab 店面干净，kebab 份量被评价为刚好；价格比一般店略高。 店里很干净，kebab 价格比一般店贵些；一个吃完刚好，不会太撑或太腻。"><div class="card-top"><span class="place-type">Kebab</span></div><div class="place-title-row"><h3>Beirut Snack</h3></div><p class="summary">店面干净，kebab 份量被评价为刚好；价格比一般店略高。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via delle Moline 14/B, 40126 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>店里很干净，kebab 价格比一般店贵些；一个吃完刚好，不会太撑或太腻。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Beirut%20Snack%2C%20Via%20delle%20Moline%2014/B%2C%2040126%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="All&#x27;Antico Vinaio 意式夹馅面包／schiacciata 意式夹馅面包有多种选择；偏干的口感或意大利火腿可能不合部分人口味。 夹心选择很多；如果不喜欢偏干的面包口感或意大利火腿，可能没那么合口味。"><div class="card-top"><span class="place-type">意式夹馅面包／schiacciata</span></div><div class="place-title-row"><h3>All&#x27;Antico Vinaio</h3></div><p class="summary">意式夹馅面包有多种选择；偏干的口感或意大利火腿可能不合部分人口味。</p><dl class="meta-list"><div class="meta"><dt>地址</dt><dd>Via Santo Stefano 6/A, 40125 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>夹心选择很多；如果不喜欢偏干的面包口感或意大利火腿，可能没那么合口味。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=All%27Antico%20Vinaio%2C%20Via%20Santo%20Stefano%206/A%2C%2040125%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article><article class="place-card" data-search="Trattoria da Vito 意餐／Trattoria 价格和味道得到好评，环境被认为较普通；投稿时不少菜低于 €10。 相比一些意餐，这里价格更实惠、味道也不错；投稿时不少菜在 €10 以下，不过环境比较普通。"><div class="card-top"><span class="place-type">意餐／Trattoria</span></div><div class="place-title-row"><h3>Trattoria da Vito</h3></div><p class="summary">价格和味道得到好评，环境被认为较普通；投稿时不少菜低于 €10。</p><dl class="meta-list"><div class="meta"><dt>价格</dt><dd>投稿时不少菜在 €10 以下</dd></div><div class="meta"><dt>地址</dt><dd>Via Mario Musolesi 9, 40138 Bologna BO</dd></div></dl><details class="reviews"><summary>看看群友怎么说</summary><ul><li><span class="reviewer">群友 B07</span><p>相比一些意餐，这里价格更实惠、味道也不错；投稿时不少菜在 €10 以下，不过环境比较普通。</p></li></ul></details><a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=Trattoria%20da%20Vito%2C%20Via%20Mario%20Musolesi%209%2C%2040138%20Bologna%20BO" target="_blank" rel="noopener noreferrer"><span>打开 Google Maps</span><span aria-hidden="true">↗</span></a></article></div></section><aside class="halloween-frog-interlude" aria-label="A Little Pause 音频彩蛋">
@@ -719,7 +975,7 @@
       <hr class="footer-rule">
       <div class="footer-thanks">
         <p class="footer-thanks-title">特别鸣谢</p>
-        <p class="footer-thanks-text">感谢参与素材分享与完善的 UniBo 群友。</p>
+        <p class="footer-thanks-text">感谢参与素材分享与完善的 UniBo 群友。</p><span class="halloween-treat-tableau" aria-hidden="true"><svg viewBox="0 0 112 28"><path d="M9 11 4 7v13l5-4m16-5 5-4v13l-5-4" fill="none" stroke="#efbc78" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="9" y="9" width="16" height="10" rx="4" fill="#9d5849" stroke="#efbc78"/><path d="M49 25V13c0-6 3-9 8-9s8 3 8 9v12l-4-2-4 2-4-2-4 2Z" fill="#efdfc4" stroke="#d39a68"/><circle cx="54" cy="13" r="1" fill="#463241"/><circle cx="60" cy="13" r="1" fill="#463241"/><path d="M55 17q2 2 4 0" fill="none" stroke="#463241" stroke-width="1"/><path d="M87 22c4-6 9-9 16-10-2 7-6 11-13 12Z" fill="#b56b47"/><path d="M89 22 99 14" stroke="#f2c47d" stroke-width="1"/></svg></span>
 
       </div>
       <section class="footer-partners" id="event-partners" aria-labelledby="partners-title">
@@ -740,7 +996,7 @@
         </div>
         <p class="partner-history-note">以上为 2026 年 10 月 16 日 UniBo 新生聚会的历史活动支持记录，不代表长期赞助关系；合作展示与群友独立推荐分开。</p>
       </section>
-      <figure class="halloween-frog-c" aria-hidden="true"><img src="assets/frog-c-halloween.webp" alt="" width="98" height="108" loading="lazy" draggable="false"></figure>
+      <figure class="halloween-frog-c" aria-label="页脚附近的 Halloween 装饰"><img src="assets/frog-c-halloween.webp" alt="" width="98" height="108" loading="lazy" draggable="false"><button class="frog-c-collect" id="frog-c-collect" type="button" aria-label="确认发现一只奶蛙" aria-pressed="false"></button></figure>
       <p class="footer-credit">Curated &amp; developed by Hong David</p>
       <p class="footer-copyright">© 2026 Hong David. All rights reserved.</p>
       <div class="footer-easter-egg"><button class="footer-rune" id="footer-rune" type="button" aria-label="揭开页脚的小秘密" aria-expanded="false" aria-controls="footer-whisper">✦</button><span id="footer-whisper" class="footer-whisper" hidden><img class="footer-tie-portrait" src="assets/frog-tie-portrait.webp" alt="" aria-hidden="true" width="38" height="56" draggable="false"><span class="footer-whisper-copy">一位穿正装的旁听者，也没找到方向。</span></span></div>
@@ -903,5 +1159,364 @@
       }
     })();
   </script>
+  <script id="halloween-hidden-reward-egg-interactions">
+    (function () {
+      var root = document.documentElement;
+      var bagTitle = document.querySelector("#category-4 .section-heading h2");
+      if (bagTitle && !document.getElementById("treat-bag-egg")) {
+        var bag = document.createElement("button");
+        bag.className = "treat-bag-egg";
+        bag.setAttribute("id", "treat-bag-egg");
+        bag.setAttribute("type", "button");
+        bag.setAttribute("aria-label", "发现一个小小的节日惊喜");
+        bag.setAttribute("aria-pressed", "false");
+        bag.innerHTML = '<svg class="treat-bag-art" viewBox="0 0 28 28" aria-hidden="true"><path d="M7 9h14l-1.5 15h-11L7 9Z" fill="#6c3d35" stroke="#dba263" stroke-width="1.4"/><path d="M9 9c1.2-3 8.8-3 10 0" fill="none" stroke="#e7bd7e" stroke-width="1.5"/><path d="M11 14c2-2 4-2 6 0" fill="none" stroke="#f5d79d" stroke-width="1.2"/><path d="M9 18h10" stroke="#c57951" stroke-width="1"/></svg><span class="treat-cookie-reveal" aria-hidden="true"><svg viewBox="0 0 36 36"><path d="M18 4c-8 0-13 6-13 14v13l6-3 7 4 7-4 6 3V18C31 10 26 4 18 4Z" fill="#f2d6a3" stroke="#9b6244" stroke-width="1.5"/><path d="m10 22 2-2 2 2m5 0 2-2 2 2" fill="none" stroke="#4c3440" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="14" r="1.4" fill="#9b6244"/><circle cx="24" cy="15" r="1.4" fill="#9b6244"/><circle cx="27" cy="24" r="1.2" fill="#b47743"/></svg></span>';
+        bagTitle.insertAdjacentElement("afterend", bag);
+        var bagStatus = document.createElement("span");
+        bagStatus.className = "sr-only";
+        bagStatus.setAttribute("id", "treat-bag-status");
+        bagStatus.setAttribute("aria-live", "polite");
+        bag.insertAdjacentElement("afterend", bagStatus);
+        var bagTimer = null;
+        function closeBag() {
+          if (bagTimer !== null) window.clearTimeout(bagTimer);
+          bagTimer = null;
+          bag.classList.remove("is-discovered");
+          bag.setAttribute("aria-pressed", "false");
+          bagStatus.textContent = "糖果袋已经安静下来。";
+        }
+        bag.addEventListener("click", function () {
+          if (!root.classList.contains("halloween-edition")) return;
+          if (bag.getAttribute("aria-pressed") === "true") { closeBag(); return; }
+          bag.classList.add("is-discovered");
+          bag.setAttribute("aria-pressed", "true");
+          bagStatus.textContent = "饼干幽灵从糖果袋里探出头，又躲了回去。";
+          if (bagTimer !== null) window.clearTimeout(bagTimer);
+          bagTimer = window.setTimeout(closeBag, 2100);
+        });
+      }
+
+      var tools = document.querySelector(".tools");
+      var search = document.getElementById("search");
+      var clearSearch = document.getElementById("clear-search");
+      var searchReward = document.getElementById("search-treat-reward");
+      var validClears = 0;
+      var searchTimer = null;
+      if (tools && search && clearSearch && searchReward) {
+        clearSearch.addEventListener("click", function () {
+          if (!root.classList.contains("halloween-edition") || !search.value.trim()) return;
+          validClears += 1;
+          if (validClears % 3 !== 0) return;
+          tools.classList.add("search-treat-earned");
+          if (searchTimer !== null) window.clearTimeout(searchTimer);
+          searchTimer = window.setTimeout(function () {
+            tools.classList.remove("search-treat-earned");
+            searchTimer = null;
+          }, 1450);
+        }, true);
+      }
+
+      var heading = document.querySelector("#category-5 .section-heading");
+      if (heading) {
+        var ghost = document.createElement("span");
+        ghost.className = "pause-cat-reward";
+        ghost.setAttribute("aria-hidden", "true");
+        ghost.innerHTML = '<svg class="pause-cat-art" viewBox="0 0 44 42" aria-hidden="true" focusable="false"><defs><radialGradient id="pause-cat-eye-glow"><stop offset="0" stop-color="#f6dc8c" stop-opacity=".5"/><stop offset="1" stop-color="#f6dc8c" stop-opacity="0"/></radialGradient></defs><ellipse cx="22" cy="23" rx="19" ry="16" fill="url(#pause-cat-eye-glow)"/><g class="pause-cat-head"><path d="M5 29c-2-4-2-9 1-14 1-2 3-4 5-5L9 3l10 6c2-.5 4-.5 6 0l10-6-2 8c3 2 5 5 6 9 2 7-1 13-6 17-3 2-7 3-11 3-7 0-13-4-17-11Z" fill="#19151e" stroke="#c08b58" stroke-width="1.25" stroke-linejoin="round"/><path d="m11 10-.5-4 5.5 3m17 1 .5-4-5.5 3" fill="none" stroke="#754958" stroke-width="1.5" stroke-linecap="round"/><path d="m12 14 4 2m16-2-4 2" stroke="#df9c62" stroke-width=".8" opacity=".6"/><path d="m20.5 29 1.5 1.1 1.5-1.1m-1.5 1.1v2m0 0q-2 2-4 0m4 0q2 2 4 0" fill="none" stroke="#e8c48e" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"/><path d="m12 29-5-1m5 3-5 1m25-3 5-1m-5 3 5 1" fill="none" stroke="#b99074" stroke-width=".7" stroke-linecap="round" opacity=".75"/></g><g class="pause-cat-eyes"><ellipse cx="15" cy="23" rx="5.2" ry="6.2" fill="#c8e887"/><ellipse cx="29" cy="23" rx="5.2" ry="6.2" fill="#c8e887"/><path d="M15 18.5c-1.8 2.2-1.8 6.8 0 9 1.8-2.2 1.8-6.8 0-9Zm14 0c-1.8 2.2-1.8 6.8 0 9 1.8-2.2 1.8-6.8 0-9Z" fill="#211923"/><circle cx="13.5" cy="20.5" r="1" fill="#fff4c9"/><circle cx="27.5" cy="20.5" r="1" fill="#fff4c9"/></g></svg>';
+        heading.appendChild(ghost);
+        var idleTimer = null;
+        var revealTimer = null;
+        var active = false;
+        var armed = true;
+        var observer = null;
+        var headingInView = false;
+        function isHeadingInView() {
+          if (observer) return headingInView;
+          var box = heading.getBoundingClientRect();
+          return box.bottom > 8 && box.top < window.innerHeight * 0.78;
+        }
+        function hideGhost() {
+          if (revealTimer !== null) window.clearTimeout(revealTimer);
+          revealTimer = null;
+          heading.classList.remove("ghost-reward-active");
+          active = false;
+        }
+        function onVisibilityChange(isVisible) {
+          headingInView = isVisible;
+          if (!isVisible) {
+            armed = true;
+            if (active) hideGhost();
+          } else if (armed) {
+            scheduleAfterScrollStops();
+          }
+        }
+        function revealGhost() {
+          if (!armed || !isHeadingInView() || !root.classList.contains("halloween-edition")) return;
+          armed = false;
+          active = true;
+          heading.classList.add("ghost-reward-active");
+          revealTimer = window.setTimeout(hideGhost, 2700);
+        }
+        function scheduleAfterScrollStops() {
+          if (idleTimer !== null) window.clearTimeout(idleTimer);
+          if (!isHeadingInView()) {
+            armed = true;
+            if (active) hideGhost();
+            return;
+          }
+          if (armed) idleTimer = window.setTimeout(revealGhost, 1350);
+        }
+        if ("IntersectionObserver" in window) {
+          observer = new window.IntersectionObserver(function (entries) {
+            if (entries.length) onVisibilityChange(entries[0].isIntersecting);
+          }, { rootMargin: "0px 0px -22% 0px", threshold: 0 });
+          observer.observe(heading);
+        }
+        window.addEventListener("scroll", scheduleAfterScrollStops, { passive: true });
+        window.addEventListener("resize", scheduleAfterScrollStops, { passive: true });
+        window.setTimeout(scheduleAfterScrollStops, 0);
+      }
+    })();
+  </script>
+  <script id="halloween-six-frog-collection">
+    (function () {
+      var root = document.documentElement;
+      var hub = document.getElementById("halloween-community-hub");
+      var panel = document.getElementById("frog-collection-panel");
+      var grid = document.getElementById("frog-collection-grid");
+      var count = document.getElementById("frog-collection-count");
+      var feedback = document.getElementById("frog-collection-feedback");
+      var extraProgress = document.getElementById("extra-egg-progress");
+      var completion = document.getElementById("completion-card");
+      var completionToggle = document.getElementById("completion-card-toggle");
+      var resetButton = document.getElementById("collection-reset");
+      if (!hub || !panel || !grid || !count) return;
+
+      var storageKey = "bologna-students.halloween-2026.frog-hunt.production.v1";
+      var images = {
+        a: "assets/frog-a-halloween.webp",
+        b: "assets/frog-b-halloween.webp",
+        c: "assets/frog-c-halloween.webp",
+        egg: "assets/frog-egg-peek.webp",
+        review: "assets/frog-review-buddy.webp",
+        tie: "assets/frog-tie-portrait.webp"
+      };
+      var validFrogs = Object.keys(images);
+      var validExtras = ["treat", "pause", "candy"];
+      var state = { frogs: [], extras: [], completedAt: null, souvenir: "" };
+      var storageReady = true;
+
+      function campaignDateActive() {
+        try {
+          var parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Rome", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+          var values = {};
+          parts.forEach(function (part) { values[part.type] = part.value; });
+          var year = Number(values.year), month = Number(values.month), day = Number(values.day);
+          return year === 2026 && ((month === 10 && day >= 20) || month === 11);
+        } catch (error) { return false; }
+      }
+      function active() { return root.classList.contains("halloween-edition") && campaignDateActive(); }
+      function cleanList(value, allowed) {
+        if (!Array.isArray(value)) return [];
+        return value.filter(function (item, index) { return allowed.indexOf(item) >= 0 && value.indexOf(item) === index; });
+      }
+      function load() {
+        try {
+          var raw = window.localStorage.getItem(storageKey);
+          if (!raw) return;
+          var saved = JSON.parse(raw);
+          state.frogs = cleanList(saved.frogs, validFrogs);
+          state.extras = cleanList(saved.extras, validExtras);
+          state.completedAt = typeof saved.completedAt === "number" && isFinite(saved.completedAt) ? saved.completedAt : null;
+          state.souvenir = typeof saved.souvenir === "string" && /^BS26-[A-Z0-9]{6}$/.test(saved.souvenir) ? saved.souvenir : "";
+        } catch (error) {
+          storageReady = false;
+        }
+      }
+      function save() {
+        try { window.localStorage.setItem(storageKey, JSON.stringify(state)); storageReady = true; }
+        catch (error) { storageReady = false; }
+      }
+      function makeSouvenirCode() {
+        var chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+        var bytes = new Uint8Array(6);
+        try {
+          if (window.crypto && window.crypto.getRandomValues) window.crypto.getRandomValues(bytes);
+          else for (var i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+        } catch (error) {
+          for (var j = 0; j < bytes.length; j++) bytes[j] = Math.floor(Math.random() * 256);
+        }
+        var suffix = "";
+        for (var k = 0; k < bytes.length; k++) suffix += chars.charAt(bytes[k] % chars.length);
+        return "BS26-" + suffix;
+      }
+      function formatRomeDate(timestamp) {
+        try { return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "long", day: "numeric", timeZone: "Europe/Rome" }).format(new Date(timestamp)); }
+        catch (error) { return new Date(timestamp).toISOString().slice(0, 10); }
+      }
+      function clearChildren(node) { while (node && node.firstChild) node.removeChild(node.firstChild); }
+      function renderSlots() {
+        var slots = Array.prototype.slice.call(grid.children);
+        slots.forEach(function (slot, index) {
+          clearChildren(slot);
+          var frog = state.frogs[index];
+          if (frog) {
+            var img = document.createElement("img");
+            img.src = images[frog];
+            img.alt = "";
+            img.loading = "lazy";
+            img.setAttribute("aria-hidden", "true");
+            slot.appendChild(img);
+            var found = document.createElement("span");
+            found.textContent = "已发现";
+            slot.appendChild(found);
+            slot.classList.add("is-found");
+            slot.setAttribute("aria-label", "已发现一只奶蛙");
+          } else {
+            var mark = document.createElement("span");
+            mark.setAttribute("aria-hidden", "true");
+            mark.textContent = "✧";
+            slot.appendChild(mark);
+            var waiting = document.createElement("span");
+            waiting.textContent = "待发现";
+            slot.appendChild(waiting);
+            slot.classList.remove("is-found");
+            slot.setAttribute("aria-label", "尚未发现");
+          }
+        });
+      }
+      function updateCompletion() {
+        var complete = state.frogs.length === 6;
+        if (completionToggle) completionToggle.hidden = !complete || !active();
+        if (!complete || !completion) return;
+        var date = document.getElementById("completion-date");
+        var code = document.getElementById("completion-code");
+        var seal = document.getElementById("completion-frog-seal");
+        if (date) date.textContent = formatRomeDate(state.completedAt || Date.now());
+        if (code) code.textContent = "本地纪念编号 · " + (state.souvenir || "BS26-------");
+        if (seal && !seal.children.length) {
+          state.frogs.forEach(function (frog) {
+            var img = document.createElement("img");
+            img.src = images[frog]; img.alt = ""; img.loading = "lazy";
+            seal.appendChild(img);
+          });
+        }
+      }
+      function render() {
+        count.textContent = state.frogs.length + "/6";
+        if (extraProgress) extraProgress.textContent = "额外秘密发现：" + state.extras.length + "/3（不计入六蛙通关）";
+        renderSlots();
+        updateCompletion();
+        if (feedback && !storageReady) feedback.textContent = "本机存储不可用；进度暂存在当前页面，关闭后可能无法保留。";
+      }
+      function revealCompletion() {
+        if (!active() || !completion || state.frogs.length !== 6) return;
+        panel.open = true;
+        completion.hidden = false;
+        if (completionToggle) completionToggle.hidden = true;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          completion.scrollIntoView({ block: "center", inline: "nearest" });
+        } else {
+          completion.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
+        }
+        completion.focus({ preventScroll: true });
+      }
+      function markFrog(id, trigger) {
+        if (!active() || validFrogs.indexOf(id) < 0) return;
+        if (trigger) trigger.classList.add("frog-hunt-found");
+        if (state.frogs.indexOf(id) >= 0) return;
+        state.frogs.push(id);
+        if (state.frogs.length === 6 && !state.completedAt) {
+          state.completedAt = Date.now();
+          state.souvenir = makeSouvenirCode();
+        }
+        save(); render();
+        if (feedback && storageReady) feedback.textContent = state.frogs.length === 6 ? "六蛙全部归队！搜查册已完成，通关卡已为你准备好。" : "已记入本机搜查册：" + state.frogs.length + "/6。";
+        if (state.frogs.length === 6) revealCompletion();
+      }
+      function markExtra(id) {
+        if (!active() || validExtras.indexOf(id) < 0 || state.extras.indexOf(id) >= 0) return;
+        state.extras.push(id); save(); render();
+      }
+
+      load();
+      render();
+      var frogA = document.getElementById("frog-a-collect");
+      var frogB = document.getElementById("frog-laugh-trigger");
+      var frogC = document.getElementById("frog-c-collect");
+      var pumpkin = document.getElementById("frog-pumpkin-trigger");
+      var frogStage = document.getElementById("frog-a-stage");
+      var footerRune = document.getElementById("footer-rune");
+      var footerWhisper = document.getElementById("footer-whisper");
+      if (frogA) frogA.addEventListener("click", function () { markFrog("a", frogA); });
+      if (frogB) frogB.addEventListener("click", function () { markFrog("b", frogB); });
+      if (frogC) frogC.addEventListener("click", function () { markFrog("c", frogC); });
+      if (pumpkin) pumpkin.addEventListener("click", function () { if (frogStage && frogStage.classList.contains("egg-revealed")) markFrog("egg", pumpkin); });
+      Array.prototype.forEach.call(document.querySelectorAll(".reviews"), function (reviews) {
+        reviews.addEventListener("toggle", function () {
+          if (reviews.open) markFrog("review", reviews.querySelector("summary"));
+        });
+      });
+      if (footerRune) footerRune.addEventListener("click", function () {
+        if (footerWhisper && !footerWhisper.hidden) markFrog("tie", footerRune);
+      });
+      if (completionToggle) completionToggle.addEventListener("click", revealCompletion);
+      if (resetButton) resetButton.addEventListener("click", function () {
+        state = { frogs: [], extras: [], completedAt: null, souvenir: "" };
+        try { window.localStorage.removeItem(storageKey); storageReady = true; } catch (error) { storageReady = false; }
+        [frogA, frogB, frogC, pumpkin, footerRune].forEach(function (node) { if (node) node.classList.remove("frog-hunt-found"); });
+        if (pumpkin) { pumpkin.classList.remove("is-lit"); pumpkin.setAttribute("aria-pressed", "false"); }
+        if (frogStage) frogStage.classList.remove("egg-revealed");
+        var bag = document.getElementById("treat-bag-egg");
+        if (bag) { bag.classList.remove("is-discovered"); bag.setAttribute("aria-pressed", "false"); }
+        var pauseHeading = document.querySelector("#category-5 .section-heading");
+        if (pauseHeading) pauseHeading.classList.remove("ghost-reward-active");
+        var searchTools = document.querySelector(".tools");
+        if (searchTools) searchTools.classList.remove("search-treat-earned");
+        Array.prototype.forEach.call(document.querySelectorAll(".reviews"), function (node) { var summary = node.querySelector("summary"); if (summary) summary.classList.remove("frog-hunt-found"); });
+        if (completion) completion.hidden = true;
+        if (feedback) feedback.textContent = "本机活动进度已清除。";
+        render();
+      });
+
+      document.addEventListener("click", function (event) {
+        var target = event.target && event.target.closest ? event.target.closest("#treat-bag-egg") : null;
+        if (target) window.setTimeout(function () { if (target.classList.contains("is-discovered")) markExtra("treat"); }, 0);
+      });
+      function refreshExtras() {
+        var bag = document.getElementById("treat-bag-egg");
+        var pause = document.querySelector("#category-5 .section-heading");
+        var tools = document.querySelector(".tools");
+        if (bag && bag.classList.contains("is-discovered")) markExtra("treat");
+        if (pause && pause.classList.contains("ghost-reward-active")) markExtra("pause");
+        if (tools && tools.classList.contains("search-treat-earned")) markExtra("candy");
+      }
+      if (window.MutationObserver) {
+        var observer = new window.MutationObserver(refreshExtras);
+        [document.getElementById("treat-bag-egg"), document.querySelector("#category-5 .section-heading"), document.querySelector(".tools")].forEach(function (node) {
+          if (node) observer.observe(node, { attributes: true, attributeFilter: ["class"] });
+        });
+      } else {
+        document.addEventListener("click", function () { window.setTimeout(refreshExtras, 0); });
+        window.addEventListener("scroll", refreshExtras, { passive: true });
+        window.setInterval(refreshExtras, 500);
+      }
+
+      function syncCampaign() {
+        if (!active()) {
+          if (!campaignDateActive()) root.classList.remove("halloween-edition");
+          if (panel) panel.open = false;
+          if (completionToggle) completionToggle.hidden = true;
+          var laughAudio = document.getElementById("frog-laugh-audio");
+          if (laughAudio && !laughAudio.paused) { laughAudio.pause(); laughAudio.currentTime = 0; }
+        }
+      }
+      syncCampaign();
+      window.setInterval(syncCampaign, 15000);
+      document.addEventListener("visibilitychange", syncCampaign);
+      window.addEventListener("pageshow", syncCampaign);
+      window.addEventListener("focus", syncCampaign);
+    })();
+  </script>
+  <script src="halloween-campaign.js"></script>
 </body>
 </html>
