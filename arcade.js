@@ -12,6 +12,7 @@
   "use strict";
 
   var STORAGE_KEY = "bologna-students.halloween-arcade.2026.production.v1";
+  var PUZZLE_RUN_KEY = STORAGE_KEY + ".puzzle-run.v1";
 
   function seasonPhase(date) {
     try {
@@ -55,9 +56,10 @@
   function normalizeAnswer(value) {
     return String(value == null ? "" : value)
       .normalize("NFKC")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .trim()
       .toLocaleLowerCase("zh-CN")
-      .replace(/[\s,.;!?，。！？:：/·_-]/g, "");
+      .replace(/[\s,.;!?，。！？:：/·_\-’'"()（）]/g, "");
   }
 
   function acceptsAnswer(value, accepted) {
@@ -83,7 +85,7 @@
     }
   }
 
-  var puzzles = [
+  var fallbackPuzzles = [
     {
       question: "第一枚线索：Bologna 的万圣夜里，南瓜灯来自一种蔬菜。它的意大利语名字是什么？",
       answers: ["zucca"],
@@ -510,7 +512,7 @@
       }
     });
 
-    // Game 3: exact answers with three user-requested hint levels per question.
+    // Game 3: one persistent draw per tier; public score remains three correct answers.
     var puzzlePanel = document.getElementById("puzzle-panel");
     var puzzleQuestion = document.getElementById("puzzle-question");
     var puzzleAnswer = document.getElementById("puzzle-answer");
@@ -522,8 +524,42 @@
     var puzzleProgress = document.getElementById("puzzle-progress");
     var puzzleComplete = document.getElementById("puzzle-complete");
     var puzzleReplay = document.getElementById("puzzle-replay");
-    var puzzleIndex = 0;
-    var hintsUsed = 0;
+    var bank = window.BolognaHalloweenPuzzles;
+    var tiers = ["easy", "medium", "hard"];
+    var validBank = !!bank && tiers.every(function (tier) { return bank.levels[tier] && bank.levels[tier].length === 30; });
+    function validRun(value) {
+      return validBank && value && Array.isArray(value.ids) && value.ids.length === 3 &&
+        Number.isInteger(value.index) && value.index >= 0 && value.index <= 3 &&
+        Number.isInteger(value.hintsUsed) && value.hintsUsed >= 0 && value.hintsUsed <= 3 &&
+        value.ids.every(function (id, index) { return bank.byId[id] && bank.byId[id].level === tiers[index]; }) &&
+        new Set(value.ids).size === 3;
+    }
+    function randomIndex(length) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        var number = new Uint32Array(1);
+        window.crypto.getRandomValues(number);
+        return number[0] % length;
+      }
+      return Math.floor(Math.random() * length);
+    }
+    function drawRun(previous) {
+      if (!validBank) return { ids: [], index: 0, hintsUsed: 0 };
+      return { ids: tiers.map(function (tier, index) {
+        var candidates = bank.levels[tier].filter(function (item) { return !previous || item.id !== previous.ids[index]; });
+        return candidates[randomIndex(candidates.length)].id;
+      }), index: 0, hintsUsed: 0 };
+    }
+    function storeRun() { if (validBank) safeWrite(storage, PUZZLE_RUN_KEY, puzzleRun); }
+    var remembered = safeRead(storage, PUZZLE_RUN_KEY).value;
+    var puzzleRun = validRun(remembered) ? remembered : drawRun(null);
+    var puzzles = validBank ? puzzleRun.ids.map(function (id) { return bank.byId[id]; }) : fallbackPuzzles;
+    var puzzleIndex = validBank ? (record.puzzleCompleted || remembered ? puzzleRun.index : 0) : (record.puzzleCompleted ? 3 : 0);
+    if (validBank && !validRun(remembered)) {
+      puzzleRun.index = record.puzzleCompleted ? 3 : 0;
+      storeRun();
+      puzzleIndex = puzzleRun.index;
+    }
+    var hintsUsed = validBank ? puzzleRun.hintsUsed : 0;
     var puzzleChallengeRequested = false;
     function beginPuzzleChallenge() {
       if (puzzleChallengeRequested) return;
@@ -542,17 +578,19 @@
       if (puzzleQuestion) puzzleQuestion.textContent = puzzles[puzzleIndex].question;
       if (puzzleAnswer) { puzzleAnswer.value = ""; puzzleAnswer.disabled = false; }
       if (puzzleSubmit) puzzleSubmit.disabled = false;
-      if (puzzleHint) { puzzleHint.disabled = false; puzzleHint.textContent = "给我一条提示"; }
-      if (hintText) { hintText.hidden = true; hintText.textContent = ""; }
-      if (hintLevel) hintLevel.textContent = "提示 0 / 3";
+      if (puzzleHint) { puzzleHint.disabled = hintsUsed >= 3; puzzleHint.textContent = "给我一条提示"; }
+      if (hintText) { hintText.hidden = hintsUsed === 0; hintText.textContent = hintsUsed ? puzzles[puzzleIndex].hints[hintsUsed - 1] : ""; }
+      if (hintLevel) hintLevel.textContent = "提示 " + hintsUsed + " / 3";
       if (puzzleStatus) puzzleStatus.textContent = "不确定时可以逐级看提示。";
       if (puzzleProgress) puzzleProgress.textContent = "第 " + (puzzleIndex + 1) + " / 3 关";
     }
     function submitPuzzle() {
       if (puzzleIndex >= puzzles.length || !puzzleAnswer) return;
+      beginPuzzleChallenge();
       if (acceptsAnswer(puzzleAnswer.value, puzzles[puzzleIndex].answers)) {
         puzzleStatus.textContent = "答对了，线索已收好。";
         puzzleIndex += 1; hintsUsed = 0;
+        if (validBank) { puzzleRun.index = puzzleIndex; puzzleRun.hintsUsed = 0; storeRun(); }
         if (puzzleIndex >= puzzles.length) {
           record.puzzleCompleted = true;
           persist(); makeShareCard(); renderRecords();
@@ -570,16 +608,20 @@
       if (puzzleIndex >= puzzles.length) return;
       beginPuzzleChallenge();
       if (hintsUsed < 3) hintsUsed += 1;
+      if (validBank) { puzzleRun.hintsUsed = hintsUsed; storeRun(); }
       hintLevel.textContent = "提示 " + hintsUsed + " / 3";
       hintText.textContent = puzzles[puzzleIndex].hints[hintsUsed - 1];
       hintText.hidden = false;
       if (hintsUsed >= 3) puzzleHint.disabled = true;
     });
-    if (puzzleReplay) puzzleReplay.addEventListener("click", function () { puzzleIndex = 0; hintsUsed = 0; puzzleChallengeRequested = false; beginPuzzleChallenge(); renderPuzzle(); });
+    if (puzzleReplay) puzzleReplay.addEventListener("click", function () {
+      if (validBank) { puzzleRun = drawRun(puzzleRun); puzzles = puzzleRun.ids.map(function (id) { return bank.byId[id]; }); storeRun(); }
+      puzzleIndex = 0; hintsUsed = 0; puzzleChallengeRequested = false; beginPuzzleChallenge(); renderPuzzle();
+    });
     if (puzzleAnswer) puzzleAnswer.addEventListener("focus", beginPuzzleChallenge);
 
     renderRecords();
-    if (record.puzzleCompleted) {
+    if (puzzleIndex >= puzzles.length) {
       puzzleIndex = puzzles.length;
       renderPuzzle();
     } else renderPuzzle();

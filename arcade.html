@@ -8,6 +8,7 @@
   <meta name="bologna-ranking-api" content="https://bologna-halloween-ranking-staging.hongdavid0921.workers.dev">
   <title>Halloween Arcade 2026｜Bologna Students</title>
   <link rel="stylesheet" href="arcade.css">
+  <script src="arcade-puzzles.js" defer></script>
   <script src="arcade.js" defer></script>
   <script src="leaderboard-client.js" defer></script>
 </head>
@@ -183,7 +184,7 @@
 
       <section class="game-card" id="bologna-mystery" aria-labelledby="mystery-title">
         <div class="game-heading"><span class="game-number">03</span><div><p class="eyebrow">THREE LITTLE CLUES</p><h2 id="mystery-title">博洛尼亚万圣谜团</h2></div></div>
-        <p class="game-description">三道逐步加深的小谜题：一颗南瓜、一段大学史，最后回到这本生活指南。</p>
+        <p class="game-description">每局从简单、中等、稍难题库各抽一题；三题都有三级提示，随时可以重新挑战。</p>
         <div class="puzzle-progress" id="puzzle-progress" role="status" aria-live="polite">第 1 / 3 关</div>
         <article class="puzzle-panel" id="puzzle-panel" aria-labelledby="puzzle-question">
           <h3 id="puzzle-question"></h3>
@@ -202,7 +203,7 @@
           <p>你把三枚线索都带回了 Bologna 的夜色里。</p>
           <button class="secondary-button" id="puzzle-replay" type="button">重新挑战谜团</button>
         </div>
-        <p class="form-help">第 2 关引用 UniBo 官方历史介绍，显示“传统上常以 1088 年为起源年份”。</p>
+        <p class="form-help">答题中的组合与进度保存在当前浏览器；刷新页面会继续本局。历史通关记录保留。</p>
       </section>
 
       <section class="share-section" aria-labelledby="share-title">
