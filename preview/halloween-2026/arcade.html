@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#17131f">
+  <meta name="description" content="Bologna Students Halloween Arcade 2026：本机成绩、午夜十秒、南瓜糖果投篮与 Bologna 万圣谜团。">
+  <title>Halloween Arcade 2026｜Bologna Students</title>
+  <link rel="stylesheet" href="arcade.css">
+  <script src="arcade.js" defer></script>
+</head>
+<body>
+  <div class="arcade-shell">
+    <header class="arcade-header">
+      <a class="brand-link" href="index.html"><span aria-hidden="true">✦</span> Bologna Students</a>
+      <a class="back-link" href="index.html">返回生活指南 ↗</a>
+    </header>
+
+    <section class="arcade-closed" id="arcade-closed" hidden aria-live="polite">
+      <p class="eyebrow">SEASON CLOSED</p>
+      <h1>这一季的游戏已收进南瓜灯</h1>
+      <p>Halloween Arcade 活动于 2026 年 11 月 30 日（Europe/Rome）结束。生活指南已恢复普通主题。</p>
+      <a class="button-link" href="index.html">回到 Bologna Students</a>
+    </section>
+
+    <main class="arcade-app" id="arcade-app" hidden>
+      <section class="arcade-hero" aria-labelledby="arcade-title">
+        <p class="eyebrow" id="season-label">HALLOWEEN ARCADE · OCT 2026</p>
+        <h1 id="arcade-title">今晚，试试手气与直觉</h1>
+        <p>三款轻量挑战，成绩只保存在当前浏览器。没有登录、公共排行榜或固定奖金。</p>
+      </section>
+
+      <section class="player-panel" aria-labelledby="player-title">
+        <div class="player-heading">
+          <div><p class="eyebrow">YOUR LOCAL RECORDS</p><h2 id="player-title">本机成绩册</h2></div>
+          <span class="local-badge">仅此浏览器</span>
+        </div>
+        <label class="nickname-label" for="player-nickname">游戏昵称 <span>可随时修改 · 最多 16 字</span></label>
+        <div class="nickname-row">
+          <input id="player-nickname" type="text" maxlength="16" autocomplete="off" placeholder="例如：南瓜观察员" aria-describedby="nickname-help">
+          <button class="small-button" id="save-nickname" type="button">保存昵称</button>
+        </div>
+        <p class="form-help" id="nickname-help">请勿填写真实姓名、学号、邮箱或微信号。不同浏览器和无痕模式的成绩不共享。</p>
+        <p class="storage-note" id="storage-note" role="status" aria-live="polite">个人最佳记录只保存在本机，不是所有玩家共享的排行榜。</p>
+        <div class="best-records" id="best-records" aria-live="polite">
+          <p>午夜十秒：<strong id="record-time">尚无纪录</strong></p>
+          <p>糖果投篮：<strong id="record-candy">尚无纪录</strong></p>
+          <p>万圣谜团：<strong id="record-puzzle">尚未通关</strong></p>
+        </div>
+      </section>
+
+      <nav class="game-jump" aria-label="游戏导航">
+        <a href="#ten-seconds">01 午夜十秒</a>
+        <a href="#candy-toss">02 糖果投篮</a>
+        <a href="#bologna-mystery">03 Bologna 谜团</a>
+      </nav>
+
+      <section class="game-card" id="ten-seconds" aria-labelledby="time-title">
+        <div class="game-heading"><span class="game-number">01</span><div><p class="eyebrow">TRUST YOUR INSTINCT</p><h2 id="time-title">午夜十秒挑战</h2></div></div>
+        <p class="game-description">看不见计时数字。凭感觉开始、停止，三次尝试里选出最接近 10.00 秒的一次。</p>
+        <div class="timer-display" id="timer-display" aria-hidden="true">READY</div>
+        <p class="game-status" id="time-status" role="status" aria-live="polite">准备好后按「开始计时」。</p>
+        <div class="game-actions">
+          <button class="primary-button" id="time-start" type="button">开始计时</button>
+          <button class="primary-button" id="time-stop" type="button" disabled>停止</button>
+          <button class="secondary-button" id="time-reset" type="button">重新开始</button>
+        </div>
+        <ol class="attempt-list" id="time-attempts" aria-label="本轮三次计时结果"><li>第 1 次：待挑战</li><li>第 2 次：待挑战</li><li>第 3 次：待挑战</li></ol>
+        <p class="best-line">本轮最佳：<strong id="time-round-best">—</strong></p>
+      </section>
+
+      <section class="game-card" id="candy-toss" aria-labelledby="candy-title">
+        <div class="game-heading"><span class="game-number">02</span><div><p class="eyebrow">AIM FOR THE GLOW</p><h2 id="candy-title">南瓜糖果投篮</h2></div></div>
+        <p class="game-description">南瓜灯在夜色里左右移动。等它靠近中线时点一下「投糖果」，每局 10 次。越接近灯芯，分数越高。</p>
+        <div class="candy-stage-wrap">
+          <canvas id="candy-stage" class="candy-stage" width="800" height="400" role="img" aria-label="移动的发光南瓜灯与投掷路线。使用下方投糖果按钮，不需要拖动。">
+            南瓜灯在画面中移动；按下方按钮投糖果。
+          </canvas>
+          <div class="stage-overlay" id="candy-overlay" hidden></div>
+        </div>
+        <div class="candy-score-line"><span>机会 <strong id="candy-shots">0 / 10</strong></span><span>得分 <strong id="candy-score">0</strong></span></div>
+        <p class="game-status" id="candy-status" role="status" aria-live="polite">开始后南瓜灯才会移动；不会播放声音。</p>
+        <div class="game-actions">
+          <button class="primary-button" id="candy-start" type="button">开始投篮</button>
+          <button class="primary-button" id="candy-throw" type="button" disabled>投糖果</button>
+          <button class="secondary-button" id="candy-reset" type="button">重新开始</button>
+        </div>
+        <p class="form-help">命中判定使用舞台的相对位置，屏幕宽度不会改变目标区间。减少动态效果模式下，南瓜以低频位置切换呈现。</p>
+      </section>
+
+      <section class="game-card" id="bologna-mystery" aria-labelledby="mystery-title">
+        <div class="game-heading"><span class="game-number">03</span><div><p class="eyebrow">THREE LITTLE CLUES</p><h2 id="mystery-title">博洛尼亚万圣谜团</h2></div></div>
+        <p class="game-description">三道逐步加深的小谜题：一颗南瓜、一段大学史，最后回到这本生活指南。</p>
+        <div class="puzzle-progress" id="puzzle-progress" role="status" aria-live="polite">第 1 / 3 关</div>
+        <article class="puzzle-panel" id="puzzle-panel" aria-labelledby="puzzle-question">
+          <h3 id="puzzle-question"></h3>
+          <div class="puzzle-answer-row">
+            <label class="sr-only" for="puzzle-answer">输入谜题答案</label>
+            <input id="puzzle-answer" type="text" maxlength="40" autocomplete="off" placeholder="写下你的答案">
+            <button class="primary-button" id="puzzle-submit" type="button">提交答案</button>
+          </div>
+          <div class="puzzle-tools"><button class="secondary-button" id="puzzle-hint" type="button">给我一条提示</button><span id="hint-level" aria-live="polite">提示 0 / 3</span></div>
+          <p class="hint-text" id="puzzle-hint-text" role="status" aria-live="polite" hidden></p>
+          <p class="game-status" id="puzzle-status" role="status" aria-live="polite">不确定时可以逐级看提示。</p>
+        </article>
+        <div class="puzzle-complete" id="puzzle-complete" hidden>
+          <span class="complete-seal" aria-hidden="true">✦</span>
+          <h3>谜团已解</h3>
+          <p>你把三枚线索都带回了 Bologna 的夜色里。</p>
+          <button class="secondary-button" id="puzzle-replay" type="button">重新挑战谜团</button>
+        </div>
+        <p class="form-help">第 2 关引用 UniBo 官方历史介绍，显示“传统上常以 1088 年为起源年份”。</p>
+      </section>
+
+      <section class="share-section" aria-labelledby="share-title">
+        <div class="share-heading"><div><p class="eyebrow">A LITTLE SOUVENIR</p><h2 id="share-title">做一张成绩纪念卡</h2></div><button class="secondary-button" id="make-share-card" type="button">更新截图卡</button></div>
+        <article class="share-card" id="share-card" hidden>
+          <div class="share-card-top"><span>BOLOGNA STUDENTS</span><span>HALLOWEEN ARCADE · 2026</span></div>
+          <p class="share-card-kicker">MIDNIGHT SCORECARD</p>
+          <h3 id="share-name">南瓜观察员</h3>
+          <div class="share-results"><p>午夜十秒 <strong id="share-time">—</strong></p><p>糖果投篮 <strong id="share-candy">—</strong></p><p>万圣谜团 <strong id="share-puzzle">—</strong></p></div>
+          <p class="share-card-foot">仅本机个人纪录 · 纪念卡不代表公共排名或获奖凭证</p>
+        </article>
+        <p class="form-help">生成后可直接在手机上截图分享；不要把纪念卡当作公共排行榜凭证。</p>
+      </section>
+
+      <footer class="arcade-footer">
+        <p>Halloween Arcade 只在 2026 年 10 月 20 日至 11 月 30 日（Europe/Rome）开放。</p>
+        <p><a href="https://www.unibo.it/en/university/who-we-are/our-history/our-history" target="_blank" rel="noopener noreferrer">UniBo 官方历史介绍 ↗</a></p>
+        <p>学生自发制作，非 Università di Bologna 官方游戏或平台。</p>
+        <a href="index.html">← 返回博洛尼亚学生生活指南</a>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
