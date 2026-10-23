@@ -187,6 +187,7 @@
       var choice = button.getAttribute("data-umami-choice");
 
       if (choice === "accept") {
+        if (ui.status) ui.status.textContent = "";
         var stored = saveChoice("accepted");
         renderUi();
         startTracker();
