@@ -1,0 +1,148 @@
+.umami-consent-root {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  pointer-events: none;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.umami-consent-root [hidden] {
+  display: none !important;
+}
+
+.umami-consent-card,
+.umami-preferences-trigger {
+  pointer-events: auto;
+  box-sizing: border-box;
+  color: #2b2234;
+  background: #fffdf7;
+  border: 1px solid #e6d8c4;
+  box-shadow: 0 8px 30px rgba(22, 14, 31, .22);
+}
+
+.umami-consent-card {
+  position: absolute;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  width: min(760px, calc(100vw - 24px));
+  padding: 16px 18px;
+  border-radius: 16px;
+  transform: translateX(-50%);
+}
+
+.umami-consent-copy h2 {
+  margin: 0 0 5px;
+  color: #392448;
+  font-size: 16px;
+}
+
+.umami-consent-copy p {
+  margin: 0;
+  color: #504858;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.umami-consent-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.umami-consent-actions button,
+.umami-preferences-trigger {
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid #db8b31;
+  border-radius: 999px;
+  color: #21162a;
+  background: #f4a43d;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.umami-consent-actions .umami-secondary,
+.umami-consent-actions .umami-text-button {
+  color: #44364f;
+  background: #fffdf7;
+  border-color: #cfc2d6;
+}
+
+.umami-consent-actions a {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
+  color: #5d3c6e;
+  font-size: 13px;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.umami-consent-actions button:focus-visible,
+.umami-preferences-trigger:focus-visible,
+.umami-consent-actions a:focus-visible {
+  outline: 3px solid #754a93;
+  outline-offset: 2px;
+}
+
+.umami-preferences-trigger {
+  position: absolute;
+  right: max(12px, env(safe-area-inset-right, 0px));
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  border-color: #b87022;
+  box-shadow: 0 4px 18px rgba(22, 14, 31, .2);
+}
+
+.umami-preferences-panel {
+  max-width: 520px;
+}
+
+.umami-consent-status:not(:empty) {
+  margin-top: 7px;
+  color: #704020;
+}
+
+@media (max-width: 480px) {
+  .umami-consent-card {
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    width: calc(100vw - 16px);
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .umami-consent-actions {
+    gap: 7px;
+  }
+
+  .umami-consent-actions button {
+    flex: 1 1 auto;
+    min-height: 42px;
+  }
+
+  .umami-consent-actions a {
+    justify-content: center;
+    flex: 1 1 100%;
+    min-height: 36px;
+  }
+
+  .umami-preferences-panel {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .umami-consent-root *,
+  .umami-consent-root *::before,
+  .umami-consent-root *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
