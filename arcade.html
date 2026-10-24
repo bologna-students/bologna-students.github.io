@@ -49,10 +49,26 @@
         <p class="form-help" id="nickname-help">请勿填写真实姓名、学号、邮箱或微信号。不同浏览器和无痕模式的成绩不共享。</p>
         <p class="storage-note" id="storage-note" role="status" aria-live="polite">个人最佳记录只保存在本机，不是所有玩家共享的排行榜。</p>
         <div class="best-records" id="best-records" aria-live="polite">
-          <p>午夜十秒：<strong id="record-time">尚无纪录</strong></p>
-          <p>糖果投篮：<strong id="record-candy">尚无纪录</strong></p>
-          <p>万圣谜团：<strong id="record-puzzle">尚未通关</strong></p>
+          <article class="score-sync-card" data-score-sync="time">
+            <p>午夜十秒</p><p>本机最佳<strong id="record-time">尚无纪录</strong></p>
+            <p>公共最佳<strong id="public-record-time">尚未加入</strong></p>
+            <p class="score-sync-status" id="sync-status-time" role="status" aria-live="polite">本机成绩与公共榜单分开保存。</p>
+            <button class="small-button score-retry" type="button" data-retry-score="time" hidden>安全重试提交</button>
+          </article>
+          <article class="score-sync-card" data-score-sync="candy">
+            <p>糖果投篮</p><p>本机最佳<strong id="record-candy">尚无纪录</strong></p>
+            <p>公共最佳<strong id="public-record-candy">尚未加入</strong></p>
+            <p class="score-sync-status" id="sync-status-candy" role="status" aria-live="polite">本机成绩与公共榜单分开保存。</p>
+            <button class="small-button score-retry" type="button" data-retry-score="candy" hidden>安全重试提交</button>
+          </article>
+          <article class="score-sync-card" data-score-sync="puzzle">
+            <p>万圣谜团</p><p>本机最佳<strong id="record-puzzle">尚未通关</strong></p>
+            <p>公共最佳<strong id="public-record-puzzle">尚未加入</strong></p>
+            <p class="score-sync-status" id="sync-status-puzzle" role="status" aria-live="polite">本机成绩与公共榜单分开保存。</p>
+            <button class="small-button score-retry" type="button" data-retry-score="puzzle" hidden>安全重试提交</button>
+          </article>
         </div>
+        <p class="form-help">公共身份只对应当前浏览器中的参赛编号。微信、Safari、不同设备及无痕窗口不会共享身份；若编号不对，请先用恢复码恢复原身份。本机成绩不能代替服务器挑战凭证。</p>
       </section>
 
       <section class="community-board" id="community-board" aria-labelledby="community-title">

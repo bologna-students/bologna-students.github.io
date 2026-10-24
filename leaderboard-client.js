@@ -11,6 +11,12 @@
     : isLegacyPreview
       ? "bologna-students.halloween-ranking.identity.preview.v1"
       : "bologna-students.halloween-ranking.identity.production.v1";
+  var SUBMISSION_QUEUE_KEY = isStagingPreview
+    ? "bologna-students.halloween-ranking.submissions.staging.2026.v1"
+    : isLegacyPreview
+      ? "bologna-students.halloween-ranking.submissions.preview.v1"
+      : "bologna-students.halloween-ranking.submissions.production.v1";
+  var SUBMISSION_QUEUE_PREFIX = SUBMISSION_QUEUE_KEY + ".";
   var MIGRATION_KEYS = !isStagingPreview && !isLegacyPreview
     ? ["bologna-students.halloween-ranking.identity.staging.2026.v1", "bologna-students.halloween-ranking.identity.preview.v1"]
     : [];
@@ -24,6 +30,13 @@
     captchaWidgets: {},
     turnstileLoading: null,
     challenges: {},
+    identityRevision: 0,
+    personalScores: null,
+    submissions: [],
+    submissionsSupported: false,
+    gameSync: {},
+    pendingSubmissions: [],
+    retryingSubmissions: {},
     memoryIdentity: null,
     ready: null
   };
@@ -34,6 +47,56 @@
   var empty = byId("leaderboard-empty");
   var personalRank = byId("personal-rank");
   var tabs = Array.prototype.slice.call(document.querySelectorAll("[data-board]"));
+  var SYNC_GAMES = ["time", "candy", "puzzle"];
+  var LOCAL_SCORE_IDS = { time: "record-time", candy: "record-candy", puzzle: "record-puzzle" };
+  var PUBLIC_SCORE_IDS = { time: "public-record-time", candy: "public-record-candy", puzzle: "public-record-puzzle" };
+
+  function readSubmissionQueue() {
+    try {
+      var entries = [];
+      for (var index = 0; index < window.localStorage.length; index += 1) {
+        var key = window.localStorage.key(index);
+        if (!key || key.indexOf(SUBMISSION_QUEUE_PREFIX) !== 0) continue;
+        try { entries.push({ key: key, item: JSON.parse(window.localStorage.getItem(key)) }); }
+        catch (_) { entries.push({ key: key, item: null }); }
+      }
+      return entries;
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function queueForGame(game) {
+    return state.pendingSubmissions.filter(function (item) { return item.game === game; });
+  }
+
+  function saveQueuedSubmission(item) {
+    if (!state.pendingSubmissions.some(function (queued) { return queued.idempotencyKey === item.idempotencyKey; })) {
+      state.pendingSubmissions.push(item);
+    }
+    try {
+      item.persisted = true;
+      window.localStorage.setItem(SUBMISSION_QUEUE_PREFIX + item.idempotencyKey, JSON.stringify(item));
+      return true;
+    } catch (_) {
+      item.persisted = false;
+      return false;
+    }
+  }
+
+  function clearQueuedSubmission(item) {
+    if (!item || typeof item.idempotencyKey !== "string") return;
+    state.pendingSubmissions = state.pendingSubmissions.filter(function (queued) { return queued.idempotencyKey !== item.idempotencyKey; });
+    try {
+      window.localStorage.removeItem(SUBMISSION_QUEUE_PREFIX + item.idempotencyKey);
+    } catch (_) { /* A stale entry remains bounded by its server challenge expiry. */ }
+  }
+
+  function clearQueuedSubmissionsForIdentity(publicCode) {
+    state.pendingSubmissions.slice().forEach(function (item) {
+      if (item.identityCode === publicCode) clearQueuedSubmission(item);
+    });
+  }
 
   function isValidIdentity(value) {
     return !!value && typeof value === "object" && typeof value.token === "string" && /^[A-Za-z0-9_-]{32,100}$/.test(value.token) &&
@@ -73,6 +136,10 @@
   function clearIdentity() {
     state.identity = null;
     state.memoryIdentity = null;
+    state.identityRevision += 1;
+    state.personalScores = null;
+    state.submissions = [];
+    state.gameSync = {};
     try {
       window.localStorage.removeItem(IDENTITY_KEY);
       MIGRATION_KEYS.forEach(function (key) { window.localStorage.removeItem(key); });
@@ -86,14 +153,29 @@
     var headers = new Headers(options.headers || {});
     if (options.body !== undefined) headers.set("Content-Type", "application/json");
     if (state.identity && state.identity.token && options.auth !== false) headers.set("Authorization", "Bearer " + state.identity.token);
-    var response = await window.fetch(apiUrl(route), {
-      method: options.method || "GET",
-      headers: headers,
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
-      credentials: "omit",
-      cache: "no-store",
-      mode: "cors"
-    });
+    var controller = options.timeoutMs && window.AbortController ? new window.AbortController() : null;
+    var timeout = controller ? window.setTimeout(function () { controller.abort(); }, options.timeoutMs) : null;
+    var response;
+    try {
+      response = await window.fetch(apiUrl(route), {
+        method: options.method || "GET",
+        headers: headers,
+        body: options.body === undefined ? undefined : JSON.stringify(options.body),
+        credentials: "omit",
+        cache: "no-store",
+        mode: "cors",
+        signal: controller ? controller.signal : undefined
+      });
+    } catch (error) {
+      if (controller && error && error.name === "AbortError") {
+        var timeoutError = new Error("排行榜请求超时；本机纪录仍已保存。 ");
+        timeoutError.code = "request_timeout";
+        throw timeoutError;
+      }
+      throw error;
+    } finally {
+      if (timeout !== null) window.clearTimeout(timeout);
+    }
     var data = {};
     try { data = await response.json(); } catch (_) { /* A non-JSON error is shown generically below. */ }
     if (!response.ok) {
@@ -129,6 +211,135 @@
       personalRank.textContent = message;
       personalRank.hidden = false;
     }
+  }
+
+  function localScoreText(game) {
+    var node = byId(LOCAL_SCORE_IDS[game]);
+    return node ? node.textContent.trim() : "尚无纪录";
+  }
+
+  function formatScore(game, value) {
+    if (game === "time") {
+      var elapsed = Number(value);
+      if (!Number.isFinite(elapsed)) return "成绩格式无效";
+      return (elapsed / 1000000).toFixed(2) + " 秒 · ±" + (Math.abs(elapsed - 10000000) / 1000000).toFixed(2);
+    }
+    if (game === "candy") return Number(value) + " / 20 分";
+    return Number(value) > 0 ? "已通关" : "尚未通关";
+  }
+
+  function activeOwnReview(game) {
+    return state.submissions.find(function (item) { return item.game === game && item.status === "pending"; }) || null;
+  }
+
+  function latestOwnSubmission(game) {
+    return state.submissions.filter(function (item) { return item.game === game; }).sort(function (left, right) {
+      return Number(right.submittedAt || 0) - Number(left.submittedAt || 0);
+    })[0] || null;
+  }
+
+  function renderGameSync(game) {
+    var card = document.querySelector('[data-score-sync="' + game + '"]');
+    if (!card) return;
+    var publicNode = byId(PUBLIC_SCORE_IDS[game]);
+    var score = Array.isArray(state.personalScores) ? state.personalScores.find(function (item) { return item.game === game && item.review_state === "accepted"; }) : null;
+    if (publicNode) {
+      if (!state.configured) publicNode.textContent = "榜单暂不可用";
+      else if (!state.identity) publicNode.textContent = "加入后显示";
+      else if (state.personalScores === null) publicNode.textContent = "查询中…";
+      else publicNode.textContent = score ? formatScore(game, score.best_value) : "暂无公开成绩";
+    }
+
+    var status = state.gameSync[game] || null;
+    var queuedItems = queueForGame(game);
+    var matchingQueued = state.identity ? queuedItems.filter(function (item) { return item.identityCode === state.identity.publicCode; }) : [];
+    var queued = matchingQueued[0] || queuedItems[0] || null;
+    var retryableItems = matchingQueued.filter(function (item) { return validQueuedSubmission(game, item) && Number(item.expiresAt) > Date.now(); });
+    var expiredQueueCount = matchingQueued.length - retryableItems.length;
+    if (queuedItems.length && state.identity && !matchingQueued.length) {
+      status = { key: "mismatch", message: "待确认成绩属于另一公共编号。请恢复对应身份后再提交；原凭证已保留。" };
+    } else if (matchingQueued.length) {
+      var otherIdentityQueueCount = queuedItems.length - matchingQueued.length;
+      var volatileQueueCount = retryableItems.filter(function (item) { return item.persisted === false; }).length;
+      var expiredCheckedCount = matchingQueued.filter(function (item) { return Number(item.expiresAt) <= Date.now() && item.receiptCheckedAt; }).length;
+      status = { key: "failed", message: retryableItems.length
+        ? (volatileQueueCount === retryableItems.length
+          ? "有 " + volatileQueueCount + " 条结果尚未确认；队列只在当前页面内存中，可留在此页安全重试，刷新或关闭后无法恢复。"
+          : "有 " + retryableItems.length + " 条提交结果尚未确认；已持久保存的项目可沿用原挑战和幂等编号安全重试。" + (volatileQueueCount ? " 另有 " + volatileQueueCount + " 条仅在当前页面内存中。" : "")) + (expiredQueueCount ? " 另有 " + expiredQueueCount + " 条凭证已过期，正在核对服务器回执，不会再次提交。" : "")
+        : (expiredCheckedCount
+          ? "个人状态接口暂未返回这条提交的服务器回执；挑战凭证已失效，不能自动补交，也无法据此断定请求从未到达。本机成绩仍保留。"
+          : "挑战凭证已过期，正在核对服务器是否收到原提交；不会重放失效凭证。本机成绩仍保留。") };
+      if (otherIdentityQueueCount) status.message += " 另有其他编号的待确认成绩保留在此浏览器。";
+    } else if (queued && !state.identity) {
+      status = { key: "mismatch", message: "有一局成绩待确认，属于编号 " + queued.identityCode + "。请用恢复码找回该身份后再重试。" };
+    } else if (state.identity && !status) {
+      var review = activeOwnReview(game);
+      var latest = latestOwnSubmission(game);
+      if (state.personalScores === null) status = { key: "preparing", message: "正在核对当前公共编号的个人成绩…" };
+      else if (review) status = { key: "pending", message: "服务器已收到 " + formatScore(game, review.value) + "，正在人工审核；公开榜暂时保留此前最佳。" };
+      else if (latest && latest.status === "approved") status = { key: "published", message: "最近一次成绩已通过审核。公共榜单显示当前公开最佳。" };
+      else if (latest && latest.status === "rejected") status = { key: "failed", message: "最近一次候选成绩未通过审核；此前公开最佳记录保留。" };
+      else if (score) status = { key: "published", message: "当前浏览器连接到公共编号 " + state.identity.publicCode + "。" };
+      else if (localScoreText(game) !== "尚无纪录" && localScoreText(game) !== "尚未通关") status = { key: "local", message: "本机有纪录；公共榜尚无对应成绩。开始新局前会申请本局挑战凭证。" };
+      else status = { key: "idle", message: "公共身份已连接；本机最佳与公共最佳分别显示。" };
+    } else if (!state.identity && !status) {
+      status = { key: "local", message: localScoreText(game) === "尚无纪录" || localScoreText(game) === "尚未通关"
+        ? "尚未加入公共榜；游戏可以照常玩。"
+        : "本机保存，尚未提交。加入前取得的本机成绩没有服务器挑战凭证，不能直接补交。" };
+    }
+
+    var statusNode = byId("sync-status-" + game);
+    if (statusNode) statusNode.textContent = status ? status.message : "本机成绩与公共榜单分开保存。";
+    card.dataset.state = status ? status.key : "idle";
+    var retry = card.querySelector("[data-retry-score]");
+    if (retry) { retry.hidden = !retryableItems.length; retry.disabled = !!(state.retryingSubmissions[game]); }
+  }
+
+  function renderAllGameSync() { SYNC_GAMES.forEach(renderGameSync); }
+
+  function applyOwnScoreData(data) {
+    state.personalScores = Array.isArray(data && data.scores) ? data.scores : [];
+    state.submissionsSupported = !!(data && data.submissionsVersion === 1 && Array.isArray(data.submissions));
+    if (state.submissionsSupported) state.submissions = data.submissions;
+    var expiredWithoutReceipt = {};
+    if (state.submissionsSupported) {
+      state.pendingSubmissions.slice().forEach(function (queued) {
+        var receipt = state.submissions.find(function (item) { return item.submissionId === queued.idempotencyKey; });
+        if (receipt) clearQueuedSubmission(queued);
+        else if (Date.now() >= Number(queued.expiresAt)) {
+          queued.receiptCheckedAt = Date.now();
+          saveQueuedSubmission(queued);
+          expiredWithoutReceipt[queued.game] = true;
+        }
+      });
+    }
+    SYNC_GAMES.forEach(function (game) {
+      var review = activeOwnReview(game);
+      var latest = latestOwnSubmission(game);
+      if (review) state.gameSync[game] = { key: "pending", message: "服务器已收到 " + formatScore(game, review.value) + "，正在人工审核；公开榜暂时保留此前最佳。" };
+      else if (latest && latest.status === "approved") state.gameSync[game] = { key: "published", message: "最近一次成绩已通过审核。公共榜单显示当前公开最佳。" };
+      else if (latest && latest.status === "rejected") state.gameSync[game] = { key: "failed", message: "最近一次候选成绩未通过审核；此前公开最佳记录保留。" };
+      else if (!state.submissionsSupported && state.gameSync[game] && state.gameSync[game].key === "pending") { /* Keep the last confirmed pending receipt on an older API version. */ }
+      else if (state.personalScores.some(function (score) { return score.game === game && score.review_state === "accepted"; })) state.gameSync[game] = { key: "published", message: "当前公共最佳已通过规则核验或人工审核。" };
+      else state.gameSync[game] = null;
+      if (expiredWithoutReceipt[game]) state.gameSync[game] = { key: "failed", message: "服务器个人回执中没有找到这次提交，且挑战凭证已过期；没有自动补交。本机成绩仍保留，请通过新一局取得有效凭证。" };
+    });
+    renderAllGameSync();
+  }
+
+  async function refreshOwnScoreData() {
+    if (!state.identity || !state.configured) return null;
+    var data = await api("/v1/identity/me");
+    if (!state.identity || data.player.publicCode !== state.identity.publicCode) {
+      state.gameSync = {};
+      setConnection("公共身份与当前资料不一致；请用恢复码恢复正确编号。", "warning");
+      renderAllGameSync();
+      return null;
+    }
+    state.identity.nickname = data.player.nickname;
+    writeIdentity(state.identity);
+    applyOwnScoreData(data);
+    return data;
   }
 
   function openDialog(id) {
@@ -336,6 +547,10 @@
       var captcha = await captchaToken("register");
       var response = await api("/v1/players", { method: "POST", auth: false, body: { nickname: nickname, consent: true, turnstileToken: captcha } });
       var stored = writeIdentity({ token: response.token, publicCode: response.player.publicCode, nickname: response.player.nickname });
+      state.identityRevision += 1;
+      state.personalScores = [];
+      state.submissions = [];
+      state.gameSync = {};
       state.configured = true;
       setConnection(stored ? "已连接 · 你的随机身份已保存在此浏览器" : "已连接 · 本机存储不可用，关闭页面后需要恢复码", stored ? "connected" : "warning");
       byId("ranking-register-name").value = "";
@@ -346,6 +561,7 @@
       byId("recovery-code-done").disabled = true;
       openDialog("recovery-code-dialog");
       await reloadBoard();
+      try { await refreshOwnScoreData(); } catch (_) { renderAllGameSync(); }
     } catch (error) { setFormMessage(form, error.message || "创建失败，请稍后再试。 "); }
     finally { button.disabled = false; }
   }
@@ -359,10 +575,15 @@
       var captcha = await captchaToken("restore");
       var response = await api("/v1/identity/restore", { method: "POST", auth: false, body: { recoveryCode: byId("ranking-recovery-input").value.trim(), turnstileToken: captcha } });
       var stored = writeIdentity({ token: response.token, publicCode: response.player.publicCode, nickname: response.player.nickname });
+      state.identityRevision += 1;
+      state.personalScores = null;
+      state.submissions = [];
+      state.gameSync = {};
       byId("ranking-recovery-input").value = "";
       setConnection(stored ? "身份已恢复 · 此浏览器现已与原成绩关联" : "身份已恢复 · 本机存储不可用，请重新保存恢复码", stored ? "connected" : "warning");
       renderIdentity();
       await reloadBoard();
+      try { await refreshOwnScoreData(); } catch (_) { renderAllGameSync(); }
     } catch (error) { setFormMessage(form, error.message || "无法恢复身份，请检查恢复码。 "); }
     finally { button.disabled = false; }
   }
@@ -404,9 +625,11 @@
     try {
       var captcha = await captchaToken("manage");
       await api("/v1/identity", { method: "DELETE", body: { confirm: "DELETE_MY_PLAYER", turnstileToken: captcha } });
+      clearQueuedSubmissionsForIdentity(state.identity && state.identity.publicCode);
       clearIdentity();
       state.challenges = {};
       renderIdentity();
+      renderAllGameSync();
       setConnection("参赛身份及公开成绩已删除。", "neutral");
       await reloadBoard();
     } catch (error) { setFormMessage(form, error.message || "删除未完成；请重试。 "); }
@@ -418,6 +641,7 @@
     clearIdentity();
     state.challenges = {};
     renderIdentity();
+    renderAllGameSync();
     setConnection("已从此浏览器退出；公开记录仍保留。", "neutral");
     await reloadBoard();
   }
@@ -434,37 +658,209 @@
     } catch (error) { setFormMessage(form, error.message || "举报未能提交。 "); }
   }
 
+  function challengeFailureIsRetryable(error) {
+    return !error.status || error.status === 408 || error.status === 429 || error.status >= 500 || error.code === "request_timeout";
+  }
+
   function prepareChallenge(game) {
+    var identityRevision = state.identityRevision;
     var task = (async function () {
-      if (state.ready) await state.ready;
-      if (!state.configured || !state.identity) return null;
-      try { return await api("/v1/challenges", { method: "POST", body: { game: game } }); }
-      catch (_) { return null; }
+      if (state.ready) await Promise.race([state.ready, new Promise(function (resolve) { window.setTimeout(resolve, 7000); })]);
+      if (!state.configured) {
+        state.gameSync[game] = { key: "failed", message: "公共榜单暂时不可用；本机成绩仍会保存，本局不会进入公共榜。" };
+        renderGameSync(game);
+        return { eligible: false, reason: "offline" };
+      }
+      if (!state.identity) {
+        state.gameSync[game] = { key: "local", message: "本局开始时未加入公共榜；本机纪录会保存，但没有本局服务器凭证。" };
+        renderGameSync(game);
+        return { eligible: false, reason: "not-enrolled" };
+      }
+      if (identityRevision !== state.identityRevision) {
+        state.gameSync[game] = { key: "mismatch", message: "本局开始后公共身份发生变化；为保护成绩归属，本局只保存到本机。" };
+        renderGameSync(game);
+        return { eligible: false, reason: "identity-changed" };
+      }
+      if (queueForGame(game).some(function (item) { return Number(item.expiresAt) > Date.now(); })) {
+        state.gameSync[game] = { key: "failed", message: "上一局仍有有效提交待确认。请先安全重试，再开始新的公共榜挑战。" };
+        renderGameSync(game);
+        return { eligible: false, reason: "submission-pending" };
+      }
+      var identityCode = state.identity.publicCode;
+      state.gameSync[game] = { key: "preparing", message: "正在为本局获取公共榜挑战凭证…" };
+      renderGameSync(game);
+      var challenge = null;
+      var lastError = null;
+      for (var attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          challenge = await api("/v1/challenges", { method: "POST", body: { game: game }, timeoutMs: 5000 });
+          lastError = null;
+          break;
+        } catch (error) {
+          lastError = error;
+          if (attempt || !challengeFailureIsRetryable(error)) break;
+          await new Promise(function (resolve) { window.setTimeout(resolve, 350); });
+        }
+      }
+      if (identityRevision !== state.identityRevision || !state.identity || state.identity.publicCode !== identityCode) {
+        state.gameSync[game] = { key: "mismatch", message: "本局开始后公共身份发生变化；挑战凭证不会转给另一个身份。" };
+        renderGameSync(game);
+        return { eligible: false, reason: "identity-changed" };
+      }
+      if (!challenge || challenge.game !== game || typeof challenge.sessionId !== "string" || typeof challenge.challenge !== "string" || !Number.isFinite(Number(challenge.expiresAt))) {
+        state.gameSync[game] = { key: "failed", message: "本局未取得有效服务器挑战凭证；本机纪录仍保存，不能把它直接补录到公共榜。" };
+        renderGameSync(game);
+        return { eligible: false, reason: "challenge-unavailable", error: lastError };
+      }
+      state.gameSync[game] = { key: "ready", message: "本局挑战凭证已就绪；结束后会显示提交、公开或审核状态。" };
+      renderGameSync(game);
+      return { eligible: true, identityCode: identityCode, challenge: challenge };
     })();
     state.challenges[game] = task;
     return task;
   }
 
+  function validQueuedSubmission(game, item) {
+    return !!item && typeof item === "object" && item.game === game &&
+      typeof item.identityCode === "string" && /^BS-[0-9A-HJKMNP-TV-Z]{8}$/.test(item.identityCode) &&
+      item.challenge && item.challenge.game === game && typeof item.challenge.sessionId === "string" && /^[0-9a-f-]{36}$/i.test(item.challenge.sessionId) && typeof item.challenge.challenge === "string" &&
+      Number.isFinite(Number(item.expiresAt)) && item.payload && typeof item.payload === "object" && item.payload.game === game &&
+      Number(item.challenge.expiresAt) === Number(item.expiresAt) &&
+      item.payload.sessionId === item.challenge.sessionId && item.payload.challenge === item.challenge.challenge &&
+      item.idempotencyKey === item.challenge.sessionId;
+  }
+
+  function restoreSubmissionQueue() {
+    state.pendingSubmissions = [];
+    readSubmissionQueue().forEach(function (entry) {
+      var game = entry.item && entry.item.game;
+      var item = entry.item;
+      var keyMatches = item && item.idempotencyKey && entry.key === SUBMISSION_QUEUE_PREFIX + item.idempotencyKey;
+      if (!SYNC_GAMES.includes(game) || !keyMatches || !validQueuedSubmission(game, item)) {
+        try { window.localStorage.removeItem(entry.key); } catch (_) { /* It will be ignored again on the next load. */ }
+        if (SYNC_GAMES.includes(game)) state.gameSync[game] = { key: "failed", message: "上次待重试请求无法安全校验；本机最佳仍保留，请重新开始一局。" };
+      } else {
+        item.persisted = true;
+        state.pendingSubmissions.push(item);
+        if (Date.now() >= Number(item.expiresAt)) state.gameSync[game] = { key: "failed", message: "上次挑战凭证已过期；正在核对服务器回执，不会重放失效凭证。本机最佳仍保留。" };
+      }
+    });
+  }
+
+  async function sendQueuedSubmission(game, item) {
+    if (state.retryingSubmissions[game]) return false;
+    if (!validQueuedSubmission(game, item)) {
+      clearQueuedSubmission(item);
+      state.gameSync[game] = { key: "failed", message: "待重试数据无法通过本机格式检查；本机纪录仍保留，请重新开始一局。" };
+      renderGameSync(game);
+      return false;
+    }
+    if (!state.identity || state.identity.publicCode !== item.identityCode) {
+      state.gameSync[game] = { key: "mismatch", message: "这条待重试成绩属于编号 " + item.identityCode + "。请在当前浏览器恢复该编号后再试。" };
+      renderGameSync(game);
+      return false;
+    }
+    if (Date.now() >= Number(item.expiresAt)) {
+      state.gameSync[game] = { key: "failed", message: "本局挑战凭证已过期，系统没有重放它；正在核对服务器回执。本机最佳仍保留。" };
+      renderGameSync(game);
+      return false;
+    }
+
+    state.gameSync[game] = { key: "uploading", message: "正在向公共榜单提交本机最佳成绩…" };
+    state.retryingSubmissions[game] = true;
+    renderGameSync(game);
+    try {
+      var result = await api("/v1/scores", {
+        method: "POST",
+        body: item.payload,
+        headers: { "Idempotency-Key": item.idempotencyKey },
+        timeoutMs: 12000
+      });
+      clearQueuedSubmission(item);
+      if (result.pendingReview) {
+        state.gameSync[game] = { key: "pending", message: "服务器已收到 " + formatScore(game, result.submittedValue) + "，正在人工审核；旧的公开最佳暂时继续显示。" };
+      } else {
+        state.gameSync[game] = { key: "published", message: "服务器已接收并核验本次提交。公共最佳：" + (result.bestValue === null ? "暂无" : formatScore(game, result.bestValue)) + "。" };
+      }
+      renderGameSync(game);
+      setRankStatus(result.message || (result.pendingReview ? "成绩已收到，正在人工审核；公开榜暂时保留此前最佳。" : "成绩提交已核验。"));
+      try { await refreshOwnScoreData(); } catch (_) { /* Keep the submission receipt visible if the follow-up read is offline. */ }
+      if (!result.pendingReview) await reloadBoard();
+      state.retryingSubmissions[game] = false;
+      renderGameSync(game);
+      return true;
+    } catch (error) {
+      var permanentClientError = error && error.status >= 400 && error.status < 500 && error.status !== 401 && error.status !== 408 && error.status !== 429;
+      if (error && (permanentClientError || error.code === "challenge_used" || error.code === "challenge_required" || error.code === "invalid_result" || error.code === "season_read_only")) {
+        clearQueuedSubmission(item);
+        state.gameSync[game] = { key: "failed", message: "服务器无法接受这份挑战凭证；没有重放或更改成绩。本机纪录仍保留，请新开一局。" };
+      } else {
+        var persisted = saveQueuedSubmission(item);
+        state.gameSync[game] = { key: "failed", message: persisted
+          ? "提交结果尚未确认；已在此浏览器安全保留同一凭证与幂等编号，可重试而不会重复计分。"
+          : "提交结果尚未确认；仅当前页面内存保留了原请求。请留在此页并重试，刷新或关闭后无法恢复提交。" };
+      }
+      renderGameSync(game);
+      setRankStatus("本机纪录已保存；公共榜单状态：" + (error.message || "网络暂时不可用，可安全重试。"));
+      state.retryingSubmissions[game] = false;
+      renderGameSync(game);
+      return false;
+    }
+  }
+
+  async function retryQueuedSubmission(game, skipReadyWait) {
+    var items = queueForGame(game).filter(function (item) { return Number(item.expiresAt) > Date.now(); });
+    if (!items.length) return;
+    if (!skipReadyWait && state.ready) await state.ready;
+    var results = [];
+    for (var i = 0; i < items.length; i += 1) results.push(await sendQueuedSubmission(game, items[i]));
+    return results.every(Boolean);
+  }
+
   async function submitGameScore(event) {
     var game = event.detail && event.detail.game;
     var body = event.detail && event.detail.result;
-    if (!GAMES[game] || !state.identity || !state.configured) return;
-    var challengeTask = state.challenges[game];
-    delete state.challenges[game];
-    var challenge = challengeTask ? await challengeTask : null;
-    if (!challenge) {
-      setRankStatus("本机纪录已保存；本局没有及时取得公共榜单凭证，因此未上传。下一局仍可再试。 ");
+    if (!GAMES[game]) return;
+    if (!state.configured) {
+      state.gameSync[game] = { key: "failed", message: "本机最佳已保存；排行榜服务不可用，当前没有公共提交。" };
+      renderGameSync(game);
       return;
     }
-    var idempotency = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : "submit-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-    var payload = Object.assign({}, body, { game: game, sessionId: challenge.sessionId, challenge: challenge.challenge });
-    try {
-      var result = await api("/v1/scores", { method: "POST", body: payload, headers: { "Idempotency-Key": idempotency } });
-      setRankStatus(result.message || "公共成绩已更新。 ");
-      if (!result.pendingReview) await reloadBoard();
-    } catch (error) {
-      setRankStatus("本机纪录已保存；公共榜单提交失败：" + (error.message || "服务暂不可用。"));
+    if (!state.identity) {
+      state.gameSync[game] = { key: "local", message: "本机最佳已保存，尚未提交。加入公共榜前完成的这局没有服务器挑战凭证，不能直接补交。" };
+      renderGameSync(game);
+      return;
     }
+    var challengeTask = state.challenges[game];
+    delete state.challenges[game];
+    var prepared = challengeTask ? await challengeTask : null;
+    if (!prepared || !prepared.eligible) {
+      if (!state.gameSync[game]) state.gameSync[game] = { key: "failed", message: "本机最佳已保存；本局没有可用的公共挑战凭证。" };
+      renderGameSync(game);
+      return;
+    }
+    if (!state.identity || state.identity.publicCode !== prepared.identityCode) {
+      state.gameSync[game] = { key: "mismatch", message: "本局公共身份与当前身份不一致；为避免成绩归错人，本局不会上传。" };
+      renderGameSync(game);
+      return;
+    }
+    if (queueForGame(game).some(function (item) { return Number(item.expiresAt) > Date.now(); })) {
+      state.gameSync[game] = { key: "failed", message: "上一局提交仍待确认，系统保留了原成绩与幂等编号；请先重试上一局。" };
+      renderGameSync(game);
+      return;
+    }
+    var payload = Object.assign({}, body, { game: game, sessionId: prepared.challenge.sessionId, challenge: prepared.challenge.challenge });
+    var envelope = {
+      game: game,
+      identityCode: prepared.identityCode,
+      challenge: prepared.challenge,
+      payload: payload,
+      idempotencyKey: prepared.challenge.sessionId,
+      expiresAt: Number(prepared.challenge.expiresAt)
+    };
+    var persisted = saveQueuedSubmission(envelope);
+    if (!persisted) state.gameSync[game] = { key: "failed", message: "本机最佳已保存，但浏览器禁止持久化待提交队列；本次若遇网络中断，关闭页面后无法恢复上传。" };
+    await sendQueuedSubmission(game, envelope);
   }
 
   var GAMES = { time: true, candy: true, puzzle: true };
@@ -472,10 +868,12 @@
   function reloadBoard() { return loadBoard(state.board); }
 
   async function initialize() {
+    restoreSubmissionQueue();
     if (!API_BASE) {
       setConnection("本机记录模式 · 公共榜单服务尚未连接", "neutral");
       if (empty) { empty.hidden = false; empty.textContent = "当前只保存本机纪录。公共排行榜需等待独立 Worker、D1 与验证服务获批配置；不影响游戏。"; }
       renderIdentity();
+      renderAllGameSync();
       return;
     }
     try {
@@ -489,6 +887,7 @@
       try { persistent = !!window.localStorage.getItem(IDENTITY_KEY); } catch (_) { persistent = false; }
       setConnection(stored ? (persistent ? "已连接 · " + stored.nickname + " · " + stored.publicCode : "已连接 · 身份只暂存在本页") : "已连接 · 加入后即可和群友同榜", stored ? "connected" : "neutral");
       renderIdentity();
+      if (stored) renderAllGameSync();
       if (state.identity) {
         try {
           var me = await api("/v1/identity/me");
@@ -496,19 +895,26 @@
           state.identity.nickname = me.player.nickname;
           writeIdentity(state.identity);
           renderIdentity();
+          applyOwnScoreData(me);
         } catch (error) {
           if (error.status === 401 || error.status === 404) { clearIdentity(); renderIdentity(); setConnection("此浏览器的身份凭证已失效；可以使用恢复码找回。", "warning"); }
+          else state.gameSync = {};
         }
       }
       await loadBoard("overall");
+      renderAllGameSync();
       var profileCode = new URL(window.location.href).searchParams.get("profile");
       if (profileCode) openPlayer(profileCode);
+      if (state.identity) SYNC_GAMES.forEach(function (game) {
+        if (queueForGame(game).some(function (item) { return item.identityCode === state.identity.publicCode && Number(item.expiresAt) > Date.now(); })) retryQueuedSubmission(game, true);
+      });
     } catch (_) {
       state.configured = false;
       state.config = null;
       setConnection("公共榜单暂时无法连接 · 游戏仍可在本机继续", "warning");
       if (empty) { empty.hidden = false; empty.textContent = "榜单服务暂时不可用。本机成绩和三款游戏不受影响。"; }
       renderIdentity();
+      renderAllGameSync();
     }
   }
 
@@ -577,9 +983,43 @@
   });
 
   document.addEventListener("bologna:arcade-game-start", function (event) {
-    if (event.detail && GAMES[event.detail.game]) prepareChallenge(event.detail.game);
+    if (event.detail && GAMES[event.detail.game]) event.detail.challengeReady = prepareChallenge(event.detail.game);
   });
   document.addEventListener("bologna:arcade-score", submitGameScore);
+  Array.prototype.forEach.call(document.querySelectorAll("[data-retry-score]"), function (button) {
+    button.addEventListener("click", function () { retryQueuedSubmission(button.getAttribute("data-retry-score")); });
+  });
+  window.addEventListener("online", function () {
+    SYNC_GAMES.forEach(function (game) { if (queueForGame(game).length) retryQueuedSubmission(game); });
+    if (state.identity && SYNC_GAMES.some(function (game) { return queueForGame(game).some(function (item) { return Number(item.expiresAt) <= Date.now(); }); })) refreshOwnScoreData().catch(function () { /* Keep the unresolved receipt visible while offline. */ });
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) return;
+    if (state.identity) SYNC_GAMES.forEach(function (game) { if (queueForGame(game).length) retryQueuedSubmission(game); });
+    var needsOwnRefresh = state.submissions.some(function (item) { return item.status === "pending"; }) || SYNC_GAMES.some(function (game) { return queueForGame(game).some(function (item) { return Number(item.expiresAt) <= Date.now(); }); });
+    if (!state.identity || !needsOwnRefresh) return;
+    var wasPending = true;
+    refreshOwnScoreData().then(function () {
+      if (wasPending && !state.submissions.some(function (item) { return item.status === "pending"; })) loadBoard(state.board);
+    }).catch(function () { /* Keep the last confirmed review state visible while offline. */ });
+  });
+  window.setInterval(function () {
+    var needsOwnRefresh = state.submissions.some(function (item) { return item.status === "pending"; }) || SYNC_GAMES.some(function (game) { return queueForGame(game).some(function (item) { return Number(item.expiresAt) <= Date.now(); }); });
+    if (document.hidden || !state.identity || !needsOwnRefresh) return;
+    refreshOwnScoreData().then(function () {
+      if (!state.submissions.some(function (item) { return item.status === "pending"; })) loadBoard(state.board);
+    }).catch(function () { /* Review status remains the last server-confirmed state. */ });
+  }, 60000);
+
+  window.addEventListener("storage", function (event) {
+    if (event.key !== null && event.key.indexOf(SUBMISSION_QUEUE_PREFIX) !== 0) return;
+    restoreSubmissionQueue();
+    renderAllGameSync();
+    if (state.identity) {
+      refreshOwnScoreData().catch(function () { /* Keep local receipt state if the API is offline. */ });
+      SYNC_GAMES.forEach(function (game) { if (queueForGame(game).length) retryQueuedSubmission(game); });
+    }
+  });
 
   state.ready = initialize();
 })();

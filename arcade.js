@@ -142,8 +142,11 @@
     }
 
     function emitRankingEvent(name, detail) {
-      try { document.dispatchEvent(new window.CustomEvent(name, { detail: detail || {} })); }
-      catch (_) { /* Optional ranking integration must never block local play. */ }
+      try {
+        var event = new window.CustomEvent(name, { detail: detail || {} });
+        document.dispatchEvent(event);
+        return event.detail && event.detail.challengeReady ? event.detail.challengeReady : Promise.resolve(null);
+      } catch (_) { /* Optional ranking integration must never block local play. */ return Promise.resolve(null); }
     }
 
     var seasonLabel = document.getElementById("season-label");
@@ -234,6 +237,7 @@
     var roundBest = document.getElementById("time-round-best");
     var timerDisplay = document.getElementById("timer-display");
     var timeStartedAt = null;
+    var timeStartRevision = 0;
     var timeResults = [];
     function renderTimeRound() {
       if (!timeAttempts) return;
@@ -249,9 +253,16 @@
         roundBest.textContent = best ? best.actual.toFixed(2) + " 秒（偏差 " + best.error.toFixed(2) + "）" : "—";
       }
     }
-    function startTime() {
+    async function startTime() {
       if (timeStartedAt !== null || timeResults.length >= 3) return;
-      if (timeResults.length === 0) emitRankingEvent("bologna:arcade-game-start", { game: "time" });
+      if (timeResults.length === 0) {
+        var requestRevision = ++timeStartRevision;
+        if (timeStart) { timeStart.disabled = true; timeStart.textContent = "检查公共榜…"; }
+        if (timeStatus) timeStatus.textContent = "正在确认本局公共榜凭证；没有凭证时仍可继续本机游戏。";
+        await emitRankingEvent("bologna:arcade-game-start", { game: "time" });
+        if (requestRevision !== timeStartRevision || timeResults.length >= 3 || timeStartedAt !== null) return;
+        if (timeStart) { timeStart.disabled = false; timeStart.textContent = "开始计时"; }
+      }
       timeStartedAt = window.performance.now();
       if (timerDisplay) timerDisplay.textContent = "••••";
       if (timeStatus) timeStatus.textContent = "计时中。准备好后按「停止」。";
@@ -287,6 +298,7 @@
       }
     }
     function resetTime() {
+      timeStartRevision += 1;
       timeStartedAt = null;
       timeResults = [];
       if (timeStart) timeStart.disabled = false;
@@ -313,6 +325,7 @@
     var reduceQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
     var reducedMotion = !!(reduceQuery && reduceQuery.matches);
     var candyState = { active: false, shots: 0, score: 0, shotsMs: [], startedAt: 0, throwing: null, frame: null, motionTimer: null, throwTimer: null, hiddenAt: null };
+    var candyStartRevision = 0;
     function currentTime() { return window.performance.now(); }
     function elapsedGameSeconds(now) { return Math.max(0, ((now || currentTime()) - candyState.startedAt) / 1000); }
     function resizeCanvas() {
@@ -447,6 +460,7 @@
       if (reducedMotion) drawCandyStage(currentTime());
     }
     function resetCandy() {
+      candyStartRevision += 1;
       stopCanvasLoop();
       if (candyState.throwTimer !== null) window.clearTimeout(candyState.throwTimer);
       candyState.throwTimer = null;
@@ -460,10 +474,15 @@
       resizeCanvas();
       if (window.ResizeObserver) new window.ResizeObserver(resizeCanvas).observe(canvas);
       else window.addEventListener("resize", resizeCanvas);
-      candyStart.addEventListener("click", function () {
+      candyStart.addEventListener("click", async function () {
         if (candyState.active) return;
         resetCandy();
-        emitRankingEvent("bologna:arcade-game-start", { game: "candy" });
+        var requestRevision = ++candyStartRevision;
+        candyStart.disabled = true;
+        candyStart.textContent = "检查公共榜…";
+        if (candyStatus) candyStatus.textContent = "正在确认本局公共榜凭证；没有凭证时仍可继续本机游戏。";
+        await emitRankingEvent("bologna:arcade-game-start", { game: "candy" });
+        if (requestRevision !== candyStartRevision) return;
         candyState.active = true;
         candyState.startedAt = currentTime();
         candyStart.disabled = true;
@@ -561,10 +580,13 @@
     }
     var hintsUsed = validBank ? puzzleRun.hintsUsed : 0;
     var puzzleChallengeRequested = false;
+    var puzzleChallengePromise = null;
+    var puzzleSubmissionPending = false;
     function beginPuzzleChallenge() {
-      if (puzzleChallengeRequested) return;
+      if (puzzleChallengeRequested) return puzzleChallengePromise || Promise.resolve(null);
       puzzleChallengeRequested = true;
-      emitRankingEvent("bologna:arcade-game-start", { game: "puzzle" });
+      puzzleChallengePromise = emitRankingEvent("bologna:arcade-game-start", { game: "puzzle" });
+      return puzzleChallengePromise;
     }
     function renderPuzzle() {
       if (puzzleIndex >= puzzles.length) {
@@ -584,9 +606,12 @@
       if (puzzleStatus) puzzleStatus.textContent = "不确定时可以逐级看提示。";
       if (puzzleProgress) puzzleProgress.textContent = "第 " + (puzzleIndex + 1) + " / 3 关";
     }
-    function submitPuzzle() {
-      if (puzzleIndex >= puzzles.length || !puzzleAnswer) return;
-      beginPuzzleChallenge();
+    async function submitPuzzle() {
+      if (puzzleIndex >= puzzles.length || !puzzleAnswer || puzzleSubmissionPending) return;
+      puzzleSubmissionPending = true;
+      if (puzzleSubmit) puzzleSubmit.disabled = true;
+      await beginPuzzleChallenge();
+      if (puzzleIndex >= puzzles.length) { puzzleSubmissionPending = false; return; }
       if (acceptsAnswer(puzzleAnswer.value, puzzles[puzzleIndex].answers)) {
         puzzleStatus.textContent = "答对了，线索已收好。";
         puzzleIndex += 1; hintsUsed = 0;
@@ -600,7 +625,9 @@
       } else {
         puzzleStatus.textContent = puzzleAnswer.value.trim() ? "还差一点，再想想或查看下一条提示。" : "先写下一个答案吧。";
         puzzleAnswer.focus();
+        if (puzzleSubmit) puzzleSubmit.disabled = false;
       }
+      puzzleSubmissionPending = false;
     }
     if (puzzleSubmit) puzzleSubmit.addEventListener("click", submitPuzzle);
     if (puzzleAnswer) puzzleAnswer.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); submitPuzzle(); } });
@@ -616,7 +643,7 @@
     });
     if (puzzleReplay) puzzleReplay.addEventListener("click", function () {
       if (validBank) { puzzleRun = drawRun(puzzleRun); puzzles = puzzleRun.ids.map(function (id) { return bank.byId[id]; }); storeRun(); }
-      puzzleIndex = 0; hintsUsed = 0; puzzleChallengeRequested = false; beginPuzzleChallenge(); renderPuzzle();
+      puzzleIndex = 0; hintsUsed = 0; puzzleChallengeRequested = false; puzzleChallengePromise = null; puzzleSubmissionPending = false; beginPuzzleChallenge(); renderPuzzle();
     });
     if (puzzleAnswer) puzzleAnswer.addEventListener("focus", beginPuzzleChallenge);
 
@@ -634,6 +661,7 @@
       closed.hidden = false;
       document.documentElement.classList.remove("arcade-active", "arcade-readonly");
       timeStartedAt = null;
+      timeStartRevision += 1;
       if (timeStart) timeStart.disabled = true;
       if (timeStop) timeStop.disabled = true;
       resetCandy();
