@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="referrer" content="no-referrer">
+  <meta name="bologna-ranking-api" content="https://bologna-halloween-ranking-staging.hongdavid0921.workers.dev">
+  <meta name="theme-color" content="#17131f">
+  <title>Halloween Arcade｜管理员审核台</title>
+  <link rel="stylesheet" href="ranking-review.css">
+  <script src="ranking-review.js" defer></script>
+</head>
+<body>
+  <main class="review-shell">
+    <header class="review-header">
+      <p class="eyebrow">BOLOGNA STUDENTS · PRIVATE OPERATIONS</p>
+      <h1>成绩审核待办</h1>
+      <p class="lede">管理员审核入口。只有持有服务端管理员令牌的人可以读取或处理队列。</p>
+    </header>
+
+    <section class="panel auth-panel" id="auth-panel" aria-labelledby="auth-title">
+      <h2 id="auth-title">连接审核队列</h2>
+      <p>令牌只在当前页面内存中使用，不写入 URL、浏览器存储或日志。关闭或刷新页面会清除。</p>
+      <form id="auth-form">
+        <label for="admin-token">管理员令牌</label>
+        <input id="admin-token" name="admin-token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+        <button type="submit">安全连接</button>
+      </form>
+      <p class="feedback" id="auth-feedback" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="review-app" hidden>
+      <section class="panel safety-panel" aria-label="审核写入保护">
+        <div>
+          <h2>当前为只读预览</h2>
+          <p>读取待办不会修改成绩。批准或驳回会立即更新线上记录，并写入管理员审计日志。</p>
+        </div>
+        <label class="write-toggle"><input type="checkbox" id="enable-writes"> 我已核对审核依据，启用处理按钮</label>
+        <button class="secondary" type="button" id="refresh-queue">刷新队列</button>
+        <button class="secondary" type="button" id="logout">断开并清除令牌</button>
+      </section>
+
+      <p class="feedback" id="queue-feedback" role="status" aria-live="polite"></p>
+      <section class="summary-grid" id="review-summary" aria-label="待审核概览"></section>
+      <section class="panel" aria-labelledby="breakdown-title">
+        <h2 id="breakdown-title">按游戏与原因</h2>
+        <div id="review-breakdown" class="breakdown-list"></div>
+      </section>
+      <section class="panel" aria-labelledby="queue-title">
+        <div class="section-heading">
+          <div><p class="eyebrow">OLDEST FIRST</p><h2 id="queue-title">待处理记录</h2></div>
+          <span class="count-pill" id="queue-count">0 条</span>
+        </div>
+        <div id="review-groups" class="review-groups"></div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

@@ -289,9 +289,13 @@
         if (timeStatus) timeStatus.textContent += " 本轮最佳：" + best.actual.toFixed(2) + " 秒。";
         if (timeReset) timeReset.textContent = "再来一轮";
         renderRecords();
+        var attemptsUs = timeResults.map(function (item) { return Math.round(item.actual * 1000000); });
+        var reportedValue = attemptsUs.reduce(function (picked, value) {
+          return Math.abs(value - 10000000) < Math.abs(picked - 10000000) ? value : picked;
+        }, attemptsUs[0]);
         emitRankingEvent("bologna:arcade-score", {
           game: "time",
-          result: { attemptsUs: timeResults.map(function (item) { return Math.round(item.actual * 1000000); }) }
+          result: { attemptsUs: attemptsUs, reportedValue: reportedValue }
         });
       } else if (timeStatus) {
         timeStatus.textContent += " 还剩 " + (3 - timeResults.length) + " 次。";
@@ -439,7 +443,7 @@
         if (candyThrow) candyThrow.disabled = true;
         emitRankingEvent("bologna:arcade-score", {
           game: "candy",
-          result: { shotsMs: candyState.shotsMs.slice(), reducedMotion: reducedMotion }
+          result: { shotsMs: candyState.shotsMs.slice(), reducedMotion: reducedMotion, reportedValue: candyState.score }
         });
       } else {
         updateCandyLabels();
@@ -619,7 +623,7 @@
         if (puzzleIndex >= puzzles.length) {
           record.puzzleCompleted = true;
           persist(); makeShareCard(); renderRecords();
-          emitRankingEvent("bologna:arcade-score", { game: "puzzle", result: { completed: true } });
+          emitRankingEvent("bologna:arcade-score", { game: "puzzle", result: { completed: true, reportedValue: 1 } });
         }
         renderPuzzle();
       } else {
