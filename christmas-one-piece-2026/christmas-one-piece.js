@@ -90,7 +90,9 @@
         context.globalAlpha = 1;
       }
       if (progress >= 1) reveal.classList.add("is-visible");
-      if (!paused && !documentObject.hidden && !reducedMotion(windowObject)) frameId = windowObject.requestAnimationFrame(draw);
+      if (!paused && !documentObject.hidden && !reducedMotion(windowObject) && progress < 1) {
+        frameId = windowObject.requestAnimationFrame(draw);
+      }
     }
 
     function replay() {
