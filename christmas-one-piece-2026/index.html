@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071b2b">
+  <meta name="description" content="Bologna Students 2026 独立学生制作的海贼王主题圣诞彩蛋。">
+  <title>Grand Line Christmas 2026｜Bologna Students</title>
+  <link rel="stylesheet" href="christmas-one-piece.css">
+</head>
+<body>
+  <main class="scene">
+    <p class="eyebrow">BOLOGNA STUDENTS · CHRISTMAS 2026</p>
+    <h1>Grand Line<br><span>Christmas</span></h1>
+    <p class="intro">一棵由航海符号、星光和朋友们共同点亮的圣诞树。</p>
+    <section class="stage" aria-label="海贼王主题圣诞彩蛋">
+      <canvas id="tree-canvas" aria-label="粒子圣诞树动画"></canvas>
+      <div class="fallback-tree" aria-hidden="true">✦<br>╲│╱<br>╱│╲<br>╲│╱<br>╱│╲</div>
+      <div id="reveal" class="reveal" aria-live="polite">
+        <p class="reveal-kicker">THE CREW IS HOME</p>
+        <p class="reveal-title">Merry Christmas,<br>nakama!</p>
+        <p class="reveal-note">一张原创祝福卡，献给在 Bologna 过冬的每一位同伴。</p>
+      </div>
+    </section>
+    <div class="controls" aria-label="动画控制">
+      <button id="pause-button" type="button" aria-pressed="false">暂停动画</button>
+      <button id="replay-button" type="button">重新点亮</button>
+      <button id="music-button" type="button" disabled aria-disabled="true">音乐：暂无公开授权音轨</button>
+    </div>
+    <p class="status" id="status">粒子正在集合 · 默认静音</p>
+    <p class="disclaimer">独立学生制作的非官方粉丝作品。未使用或内嵌官方合照、官方线稿或音乐；待确认可公开发布的素材到位后，才会另行替换当前原创符号占位。</p>
+    <a class="back" href="../index.html">← 返回 Bologna Students</a>
+  </main>
+  <script src="christmas-one-piece.js"></script>
+</body>
+</html>
