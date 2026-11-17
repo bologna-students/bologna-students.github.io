@@ -39,6 +39,14 @@
     });
   }
 
-  return { getDeadlineStatus, romeDateTime, updateDeadlineElements };
+  const api = { getDeadlineStatus, romeDateTime, updateDeadlineElements };
+  if (typeof document === "object") {
+    const update = () => updateDeadlineElements(document);
+    document.addEventListener("DOMContentLoaded", update);
+    window.setInterval(update, 60000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) update();
+    });
+  }
+  return api;
 });
-
