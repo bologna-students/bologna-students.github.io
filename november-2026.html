@@ -25,12 +25,14 @@
     .notice { margin:24px 0; padding:19px 20px; border:1px solid #c9854f; border-left:5px solid #b65c32; border-radius:13px; background:#fff4e6; }
     .notice strong { display:block; font-size:18px; }
     .notice p { margin:6px 0 0; }
+    .notice.is-expired { border-color:var(--line); border-left-color:#a99683; background:#f4eee5; }
     .quick { display:flex; flex-wrap:wrap; gap:8px; margin:24px 0 31px; }
     .quick a { padding:7px 11px; border:1px solid var(--line); border-radius:999px; background:#fffdf8; font-size:13px; text-decoration:none; }
     h2 { margin:35px 0 13px; font:700 25px/1.3 Georgia,"Noto Serif SC",serif; }
     .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
     .card { min-width:0; padding:19px 20px; border:1px solid var(--line); border-radius:16px; background:#fffdf8; box-shadow:0 5px 18px #4930200a; }
     .card.urgent { border-color:#d9a177; }
+    .card.is-expired { border-color:var(--line); }
     .meta { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
     .tag { padding:3px 8px; border-radius:6px; background:#efe6d8; color:#62463b; font-size:12px; font-weight:700; }
     .tag.date { background:#f9e1c8; color:#773c24; }
@@ -54,24 +56,24 @@
     <p class="updated">官方信息核对：2026 年 11 月 2 日 · 独立学生整理，非 UniBo 或 ER.GO 官方通知</p>
   </div></header>
   <main class="wrap">
-    <aside class="notice" aria-label="近期重要截止"><strong>最紧急：ER.GO 住宿自我声明 · 11 月 3 日 16:00</strong><p>申请校外住宿标准奖学金、需申报 domicile 的同学，先核对自己是否适用，再到 ER.GO 线上系统办理。声明表单与后续住宿证明材料是不同步骤；不要等材料齐了才查看表单。<a href="https://www.er-go.it/cosa-fare-per/bandi-di-concorso/scadenze/scadenze-per-richiedere-i-benefici" target="_blank" rel="noopener noreferrer">查看 ER.GO 官方期限 ↗</a></p></aside>
+    <aside class="notice" data-deadline="2026-11-03T16:00" data-urgent="true" aria-label="近期重要截止"><strong><span data-deadline-status aria-live="polite">申请截止</span>：ER.GO 住宿自我声明 · 11 月 3 日 16:00</strong><p>申请校外住宿标准奖学金、需申报 domicile 的同学，先核对自己是否适用，再到 ER.GO 线上系统办理。声明表单与后续住宿证明材料是不同步骤；不要等材料齐了才查看表单。<a href="https://www.er-go.it/cosa-fare-per/bandi-di-concorso/scadenze/scadenze-per-richiedere-i-benefici" target="_blank" rel="noopener noreferrer">查看 ER.GO 官方期限 ↗</a></p></aside>
     <nav class="quick" aria-label="页面目录"><a href="#ergo">ER.GO</a><a href="#fees">学费与材料</a><a href="#work">150 ore</a><a href="#study">课程与考试</a><a href="#documents">居留与税号</a><a href="#winter">冬季生活</a></nav>
 
     <h2 id="ergo">01 · ER.GO 奖学金与住宿</h2>
     <div class="grid">
-      <article class="card urgent"><div class="meta"><span class="tag date">11 月 3 日 16:00</span><span class="tag">适用：需要申报校外住宿的学生</span></div><h3>提交 Autocertificazione di domicilio</h3><p>ER.GO 公布的 2026/27 住宿自我声明在线表单截止时间。先确认自己的奖学金身份、住宿方式和适用材料；申报与上传证明是两件事。</p><a class="source" href="https://www.er-go.it/cosa-fare-per/bandi-di-concorso/scadenze/scadenze-per-richiedere-i-benefici" target="_blank" rel="noopener noreferrer">ER.GO 截止日清单 ↗</a></article>
+      <article class="card" data-deadline="2026-11-03T16:00" data-urgent="true"><div class="meta"><span class="tag date">11 月 3 日 16:00</span><span class="tag" data-deadline-status>申请截止</span><span class="tag">适用：需要申报校外住宿的学生</span></div><h3>提交 Autocertificazione di domicilio</h3><p>ER.GO 公布的 2026/27 住宿自我声明在线表单截止时间。先确认自己的奖学金身份、住宿方式和适用材料；申报与上传证明是两件事。</p><a class="source" href="https://www.er-go.it/cosa-fare-per/bandi-di-concorso/scadenze/scadenze-per-richiedere-i-benefici" target="_blank" rel="noopener noreferrer">ER.GO 截止日清单 ↗</a></article>
       <article class="card"><div class="meta"><span class="tag date">11 月 17 日发布</span><span class="tag">适用：2026/27 奖学金申请人</span></div><h3>查看奖学金预最终排名</h3><p>ER.GO 的奖学金与相关减免预最终排名计划于 11 月 17 日公布。10 月 20 日的临时排名只反映资格状态，不等于已经确定获奖；请在 Dossier Utente 查看个人结果与通知。</p><a class="source" href="https://www.er-go.it/cosa-fare-per/bandi-di-concorso/graduatorie" target="_blank" rel="noopener noreferrer">ER.GO 排名日程 ↗</a></article>
       <article class="card"><div class="meta"><span class="tag date">住宿证明：2027 年 1 月 14 日</span><span class="tag">适用：按校外住宿标准申报者</span></div><h3>保留合同与付款证据</h3><p>ER.GO 官方期限表将住宿证明上传与 11 月 3 日的在线声明分列。具体材料、住宿时长和特殊情形请按个人申请类别查看指南与 Dossier 通知。</p><a class="source" href="https://www.er-go.it/cosa-fare-per/utilita/guida-pratica-al-domicilio/chi-deve-documentare-il-domicilio" target="_blank" rel="noopener noreferrer">ER.GO 住宿证明指南 ↗</a></article>
     </div>
 
     <h2 id="fees">02 · UniBo 学费减免与境外收入材料</h2>
     <div class="grid">
-      <article class="card urgent"><div class="meta"><span class="tag date">11 月 16 日 18:00</span><span class="tag">适用：需申请 2026/27 学费减免者</span></div><h3>ISEE / 境外经济资料迟交窗口</h3><p>UniBo 普通期限为 10 月 30 日 18:00；11 月 16 日 18:00 前仍可提交，但官方列明 €100 迟交费用。通过 ER.GO 线上服务填写个人及经济数据。没有在期限内提交，可能无法享受学费减免。</p><a class="source" href="https://www.unibo.it/en/study/enrolment-fees-and-other-procedures/degree-programmes/tuition-fees-and-exemptions/submitting-the-isee-or-documents-for-foreign-income-for-university-fee-exemptions" target="_blank" rel="noopener noreferrer">UniBo 学费减免提交说明 ↗</a></article>
+      <article class="card" data-deadline="2026-11-16T18:00" data-urgent="true"><div class="meta"><span class="tag date">11 月 16 日 18:00</span><span class="tag" data-deadline-status>申请截止</span><span class="tag">适用：需申请 2026/27 学费减免者</span></div><h3>ISEE / 境外经济资料迟交窗口</h3><p>UniBo 普通期限为 10 月 30 日 18:00；11 月 16 日 18:00 前仍可提交，但官方列明 €100 迟交费用。通过 ER.GO 线上服务填写个人及经济数据。没有在期限内提交，可能无法享受学费减免。</p><a class="source" href="https://www.unibo.it/en/study/enrolment-fees-and-other-procedures/degree-programmes/tuition-fees-and-exemptions/submitting-the-isee-or-documents-for-foreign-income-for-university-fee-exemptions" target="_blank" rel="noopener noreferrer">UniBo 学费减免提交说明 ↗</a></article>
       <article class="card"><div class="meta"><span class="tag date">11 月 20 日</span><span class="tag">适用：有境外收入或资产者</span></div><h3>补交境外经济证明</h3><p>在期限内填报个人及经济数据之后，相关境外证明须按 UniBo 说明通过 ER.GO Dossier 上传；翻译、认证或 Apostille 要求取决于文件。不要只完成在线填表就以为材料已全部提交。</p><a class="source" href="https://www.unibo.it/en/study/enrolment-fees-and-other-procedures/degree-programmes/tuition-fees-and-exemptions/submitting-the-isee-or-documents-for-foreign-income-for-university-fee-exemptions" target="_blank" rel="noopener noreferrer">UniBo 境外材料要求 ↗</a></article>
     </div>
 
     <h2 id="work">03 · 150 ore 学生兼职</h2>
-    <div class="grid"><article class="card urgent"><div class="meta"><span class="tag date">11 月 26 日 15:00</span><span class="tag">适用：符合经济、学业等条件的在读学生</span></div><h3>查看校区招募并申请</h3><p>2026/27 的 150 ore 校内合作通过 Studenti Online 的 Bandi 提交。不同校区有各自公告和名额，先读对应公告的资格要求；临时名单预计 12 月下半月公布，关注学校邮箱。</p><a class="source" href="https://www.unibo.it/en/study/study-grants-and-subsidies/call-for-applications-and-ranking-lists-for-student-collaboration-150-hours" target="_blank" rel="noopener noreferrer">UniBo 150 ore 公告与申请说明 ↗</a></article></div>
+    <div class="grid"><article class="card" data-deadline="2026-11-26T15:00" data-urgent="true"><div class="meta"><span class="tag date">11 月 26 日 15:00</span><span class="tag" data-deadline-status>申请截止</span><span class="tag">适用：符合经济、学业等条件的在读学生</span></div><h3>查看校区招募并申请</h3><p>2026/27 的 150 ore 校内合作通过 Studenti Online 的 Bandi 提交。不同校区有各自公告和名额，先读对应公告的资格要求；临时名单预计 12 月下半月公布，关注学校邮箱。</p><a class="source" href="https://www.unibo.it/en/study/study-grants-and-subsidies/call-for-applications-and-ranking-lists-for-student-collaboration-150-hours" target="_blank" rel="noopener noreferrer">UniBo 150 ore 公告与申请说明 ↗</a></article></div>
 
     <h2 id="study">04 · Piano di studi、课程和考试</h2>
     <div class="grid"><article class="card"><div class="meta"><span class="tag date">截止日：按专业确认</span><span class="tag">适用：需要选课或修改学习计划者</span></div><h3>查看自己课程的学习计划开放期</h3><p>UniBo 各课程的 2026/27 Piano di studi 提交窗口并不统一。登录 Studenti Online 之前，先打开本专业课程页面的“Preparing the study plan / Compilare il piano di studi”；例如有课程在 11 月 6 日关闭，也有课程到 11 月 19 日。</p><a class="source" href="https://www.unibo.it/it/studiare/guida-alla-scelta-del-corso/calendario-accademico" target="_blank" rel="noopener noreferrer">UniBo 学年日历与课程入口 ↗</a></article>
@@ -86,6 +88,7 @@
       <article class="card"><div class="meta"><span class="tag date">需要时使用</span><span class="tag">适用：在 Bologna 生活的学生</span></div><h3>医疗与紧急求助</h3><p>保存当地求助渠道；意大利统一紧急电话为 112。非紧急的医疗和学生健康服务可先看 UniBo 指南。紧急情况直接联系对应服务，不等待网页回复。</p><a class="source" href="https://www.unibo.it/it/studiare/vivere-luniversita-e-la-citta/salute-e-assistenza/assistenza-sanitaria-e-cure-mediche-a-bologna-cesena-forli-ravenna-e-rimini/assistenza-sanitaria-e-cure-mediche-a-bologna" target="_blank" rel="noopener noreferrer">UniBo Bologna 医疗与求助指南 ↗</a></article></div>
     <p class="subtle divider">本页只整理已链接的官方规则；“提前准备”“留意邮件”等是学生生活建议。政策可能更新，若页面与官方系统不一致，以官方公告及个人 Dossier / Studenti Online 显示为准。</p>
   </main>
+  <script src="deadline-status.js" defer></script>
   <footer><div class="wrap">Bologna Students · 学生独立整理 · <a href="index.html">生活指南</a> · <a href="privacy.html">隐私说明</a></div></footer>
 </body>
 </html>
