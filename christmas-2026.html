@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#143c38">
+  <meta name="description" content="Bologna Christmas 2026：亲手装饰圣诞树、写下冬日祝福、迎接圣诞倒数日历。Bologna Students 学生自发制作的节日互动体验。">
+  <meta name="christmas-forest-api" content="">
+  <title>Bologna Christmas 2026｜双塔之间的圣诞魔法</title>
+  <link rel="stylesheet" href="christmas-2026.css">
+  <link rel="stylesheet" href="christmas-2026-editor.css">
+  <script src="christmas-calendar-core.js" defer></script>
+  <script src="christmas-editor-core.js" defer></script>
+  <script src="christmas-2026.js" defer></script>
+  <script src="christmas-forest-client.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#workshop">跳转到圣诞树编辑器</a>
+  <header class="topbar">
+    <a class="brand" href="https://bologna-students.github.io/" aria-label="返回 Bologna Students 学生指南"><span aria-hidden="true">✳</span> Bologna Students</a>
+    <span class="topbar-note">2026 · CHRISTMAS EDITION <span class="sparkle" aria-hidden="true">✦</span></span>
+    <a class="back" href="https://bologna-students.github.io/">返回学生指南 ↗</a>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-art" aria-hidden="true"><span class="tower tower-a"></span><span class="tower tower-b"></span><span class="hero-moon"></span><span class="star-one">✦</span><span class="star-two">✳</span><span class="hero-snow">❆</span></div>
+      <div class="hero-copy">
+        <div class="eyebrow">✶ A LITTLE MAGIC BETWEEN THE TWO TOWERS ✶</div>
+        <h1 id="hero-title">圣诞节，<br><em>一起种一片森林。</em></h1>
+        <p>一颗星星、一串彩灯、一句祝福。把今年想说的话，亲手挂到你的圣诞树上。</p>
+        <div class="hero-actions"><a class="btn primary" href="#workshop">开始装饰我的树 <span aria-hidden="true">↗</span></a><a class="btn ghost" href="#forest">圣诞森林</a><a class="btn ghost" href="#calendar">圣诞日历</a><a class="btn ghost" href="#postoffice">冬日邮局</a></div>
+      </div>
+      <div class="postmark" aria-hidden="true"><span>BOLOGNA</span><strong>2026</strong><span>WINTER MAIL</span></div>
+    </section>
+
+    <div class="note-ribbon" role="note"><span>🎄 圣诞活动预览</span><span>工坊草稿保存在此浏览器 · 森林投稿状态以森林页面提示为准</span></div>
+
+    <section id="postoffice" class="intro-strip" aria-label="双塔冬日邮局">
+      <span><b>✉</b> 双塔冬日邮局</span><span>公开入口开放前，写信、收信登记和每日投递暂不可用。</span>
+    </section>
+
+    <section class="intro-strip" aria-label="活动介绍"><span><b>01</b> 自由摆放挂饰</span><span><b>02</b> 写一句小小愿望</span><span><b>03</b> 保存并分享作品</span></section>
+
+    <section id="workshop" class="workshop" aria-labelledby="workshop-heading">
+      <div class="section-heading"><span class="handwrite">The Christmas Workshop</span><h2 id="workshop-heading">我的圣诞树工坊 <span aria-hidden="true">✳</span></h2><p>这是属于你的手工角落。装饰可以拖动，歪一点也没关系。</p></div>
+      <div class="workshop-grid">
+        <div class="control-card">
+          <div class="panel-head"><span class="kicker">YOUR LITTLE STUDIO</span><span class="counter" id="ornament-count">0 / 60 件挂饰</span></div>
+          <label for="tree-title">给这棵树取个名字</label>
+          <input id="tree-title" maxlength="28" placeholder="例如：期末都给我过！" autocomplete="off">
+          <label for="tree-wish">写一句冬日心愿</label>
+          <textarea id="tree-wish" maxlength="42" rows="2" placeholder="今年也要好好生活呀。"></textarea>
+          <div class="two-controls">
+            <div><label for="tree-style">圣诞树颜色</label><select id="tree-style"><option value="forest">松针绿</option><option value="mint">薄荷雪松</option><option value="blue">午夜蓝杉</option></select></div>
+            <div><label for="scene-style">背景</label><select id="scene-style"><option value="night">双塔雪夜</option><option value="dusk">暖金黄昏</option><option value="day">冬日晨光</option></select></div>
+          </div>
+          <div class="history-controls" id="history-controls" role="group" aria-label="编辑历史"><button type="button" id="undo-edit" class="btn lite" disabled>↶ 撤销</button><button type="button" id="redo-edit" class="btn lite" disabled>↷ 重做</button></div>
+          <fieldset class="ornament-fieldset" id="ornament-fieldset"><legend>挑选喜欢的小挂饰</legend><p class="small-hint">点选即可添加；拖动挂饰调整位置，也可用下方按钮微调。</p><div class="ornament-grid" id="ornament-palette" role="group" aria-label="挂饰选择"></div></fieldset>
+          <div class="adjust-panel" id="adjust-panel" hidden><div class="adjust-head"><b>正在调整挂饰</b><button type="button" class="text-button" id="remove-selected">取下挂饰 ✕</button></div><div class="adjust-buttons" role="group" aria-label="微调挂饰位置"><button type="button" data-move="left" aria-label="挂饰向左移动">←</button><button type="button" data-move="up" aria-label="挂饰向上移动">↑</button><button type="button" data-move="down" aria-label="挂饰向下移动">↓</button><button type="button" data-move="right" aria-label="挂饰向右移动">→</button></div><div class="layer-buttons" role="group" aria-label="调整挂饰层级"><button type="button" data-layer="back">移到后面</button><button type="button" data-layer="front">移到前面</button></div><label class="range-label" for="size-control">挂饰大小 <span id="size-number">100%</span></label><input id="size-control" type="range" min="65" max="150" step="5" value="100"><div class="color-picker"><span class="small-hint">挂饰颜色</span><div class="color-options" id="color-options" role="group" aria-label="挂饰颜色"></div></div></div>
+          <div class="studio-actions"><button type="button" id="save-draft" class="btn dark">💌 保存草稿</button><button type="button" id="export-png" class="btn primary">↧ 导出作品 PNG</button><button type="button" id="submit-to-forest" class="btn primary" disabled>✧ 申请加入圣诞森林</button><button type="button" id="surprise-tree" class="btn lite">🎲 随机装饰一下</button><button type="button" id="clear-tree" class="btn lite">重新开始</button></div>
+          <p class="small-print">草稿只保存在当前浏览器。清除浏览器数据可能丢失作品，请记得导出图片。</p>
+        </div>
+        <div class="canvas-side">
+          <div class="canvas-toolbar"><span><span class="live-dot"></span> LIVE HANDMADE PREVIEW</span><label><input id="lights-switch" type="checkbox" checked> 点亮彩灯</label></div>
+          <div class="canvas-frame">
+            <svg id="tree-canvas" viewBox="0 0 600 740" role="img" aria-label="可编辑圣诞树：点击挂饰选择并拖动装饰；键盘可通过下方微调按钮调整" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="sky-night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#193c4b"/><stop offset="1" stop-color="#557a77"/></linearGradient><linearGradient id="sky-dusk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9f5363"/><stop offset="1" stop-color="#f0b98f"/></linearGradient><linearGradient id="sky-day" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9ac8ce"/><stop offset="1" stop-color="#f2e9cf"/></linearGradient><linearGradient id="tree-gradient" x1="0" y1="0" x2="1" y2="1"><stop id="tree-stop-1" offset="0" stop-color="#376f57"/><stop id="tree-stop-2" offset="1" stop-color="#123f37"/></linearGradient><filter id="light-halo"><feGaussianBlur stdDeviation="5"/></filter><pattern id="paper-noise" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="5" cy="7" r=".7" fill="#fff" opacity=".16"/><circle cx="15" cy="17" r=".6" fill="#fff" opacity=".13"/></pattern></defs>
+              <rect id="sky" width="600" height="740" fill="url(#sky-night)"/>
+              <g fill="#fff9dd" opacity=".83"><circle cx="83" cy="78" r="2"/><circle cx="477" cy="83" r="2"/><circle cx="517" cy="174" r="1.6"/><circle cx="125" cy="190" r="1"/><circle cx="423" cy="38" r="1.6"/><circle cx="42" cy="287" r="2"/><circle cx="558" cy="313" r="1.7"/></g>
+              <circle id="moon" cx="476" cy="133" r="44" fill="#fff5d5" opacity=".9"/>
+              <g id="bologna-towers" opacity=".46"><path d="M41 520V322h47v198zm60 0V274h59v246z" fill="#233d40"/><path d="M44 321h41l-7-10H51zm60-47h53l-8-13h-36z" fill="#233d40"/><path d="M447 535V377h38v158zm53 0V345h44v190z" fill="#263e42"/><g fill="#f6dbaa"><rect x="58" y="351" width="8" height="17" rx="2"/><rect x="117" y="311" width="8" height="15" rx="2"/><rect x="117" y="350" width="8" height="15" rx="2"/><rect x="464" y="399" width="6" height="13" rx="2"/><rect x="519" y="373" width="7" height="15" rx="2"/></g></g>
+              <path d="M0 587Q134 536 300 574T600 574V740H0Z" fill="#e9eee4"/><path d="M0 628Q136 585 272 610T600 612V740H0Z" fill="#f9f4e9"/>
+              <g id="tree-art"><rect x="275" y="518" width="50" height="105" rx="12" fill="#8b5a3b"/><path d="M297 112C285 154 258 182 225 218l28 2-76 89 42 6-93 127 52 0-67 112 189 5 190-5-69-114h52l-93-125 42-7-77-88 29-1C343 187 313 147 297 112Z" fill="url(#tree-gradient)" stroke="#215044" stroke-width="5" stroke-linejoin="round"/><path d="M299 152 259 219M302 198l-58 113M314 244l-80 143M318 306l-85 175M283 344l-105 142" fill="none" stroke="#98b89b" stroke-width="5" opacity=".25" stroke-linecap="round"/><path d="M317 184l41 42M330 263l58 72M346 351l63 81M337 443l58 62" fill="none" stroke="#061b1b" stroke-width="5" opacity=".18" stroke-linecap="round"/><g id="light-string" fill="none" stroke="#ffe9bc" stroke-width="3" opacity=".75"><path d="M278 222Q311 250 345 227M230 316Q290 350 376 315M172 433Q299 473 428 435M149 514Q294 560 452 521"/></g><g id="light-dots"></g><g id="ornament-layer"></g><g id="topper"><path d="m300 94 14 29 32 5-23 23 5 33-28-15-29 15 6-33-24-23 33-5Z" fill="#f5d47b" stroke="#fff0ae" stroke-width="3"/><circle cx="300" cy="137" r="7" fill="#fff4c7"/></g></g>
+              <g fill="#fbf2e2"><ellipse cx="183" cy="607" rx="45" ry="12"/><ellipse cx="414" cy="619" rx="53" ry="11"/></g><g id="snowflakes"></g>
+              <rect x="32" y="643" width="536" height="79" rx="19" fill="#fff9ee" opacity=".94"/>
+              <text id="svg-title" x="300" y="676" text-anchor="middle" fill="#245147" font-family="sans-serif" font-weight="800" font-size="23">我的小小圣诞树</text>
+              <text id="svg-wish" x="300" y="705" text-anchor="middle" fill="#67766a" font-family="sans-serif" font-size="15">Merry Christmas from Bologna ♡</text>
+              <rect width="600" height="740" fill="url(#paper-noise)" pointer-events="none"/>
+            </svg>
+            <div class="canvas-stamp" aria-hidden="true">HANDMADE<br>IN BOLOGNA ♡</div>
+          </div>
+          <div class="canvas-footer"><span>✳ 每一棵树都不需要完美。</span><span>点击挂饰选择 · 手指拖动调整</span></div>
+          <div class="mobile-editor-dock" id="mobile-editor-dock" aria-label="画布旁快捷编辑工具"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="forest" class="forest" aria-labelledby="forest-heading"><div class="section-heading"><span class="handwrite">A forest made by us</span><h2 id="forest-heading">一起点亮圣诞森林</h2><p>每棵树都不一样，每一份认真装饰的心意都值得被看见。</p></div><div class="forest-preview"><div class="forest-illustration" aria-hidden="true"><span>🎄</span><span>🎄</span><span>🎄</span></div><div><span class="eyebrow muted">COMMUNITY CHRISTMAS FOREST</span><h3>一棵树一盏灯，森林由真实作品点亮。</h3><p>提交的作品会先进入审核，只有通过审核的树才会公开展示。作品仅保存结构化装饰数据，不接受图片、HTML 或自定义脚本。</p><p class="forest-badge" id="community-tree-count">森林连接后显示已审核作品与真实灯数。</p><p class="forest-connection" id="forest-status" role="status">本地候选尚未连接圣诞森林 Staging；作品不会被发送或公开。</p></div></div><div class="forest-toolbar"><div class="forest-sort" role="group" aria-label="作品排序"><button type="button" data-forest-sort="latest" aria-pressed="true">最新</button><button type="button" data-forest-sort="popular" aria-pressed="false">人气</button><button type="button" data-forest-sort="random" aria-pressed="false">随机</button></div><button type="button" id="forest-privacy-open" class="btn lite" disabled>我的作品与隐私请求</button></div><div id="forest-gallery" class="forest-gallery" aria-live="polite"></div><button type="button" id="forest-more" class="btn lite forest-more" hidden>继续看作品</button></section>
+
+    <section id="calendar" class="calendar" aria-labelledby="calendar-heading"><div class="section-heading"><span class="handwrite">24 days of little wonders</span><h2 id="calendar-heading">圣诞倒数日历 <span aria-hidden="true">🎁</span></h2><p>从 12 月 1 日开始，每天拆开一份给 Bologna 的小惊喜。</p></div><div class="calendar-layout"><div class="calendar-grid" id="calendar-grid" aria-label="12 月 1 日到 24 日的节日礼盒"></div><aside class="calendar-note"><div class="calendar-note-art" aria-hidden="true">✉️</div><span class="kicker">THE LITTLE LETTER</span><h3 id="calendar-letter-title">圣诞邮局还没开门</h3><p id="calendar-letter-body">先来装饰你的圣诞树吧！12 月 1 日起，每天会多一封小小来信。</p><a id="calendar-action" class="btn lite" hidden></a><span class="small-hint">日历按照设备的 Europe/Rome 日期解锁；这里只是节日体验，不作为奖品资格证明。</span></aside></div></section>
+
+    <section class="last-note"><span>♡</span><p>我们不是真的要拥有一片森林。<br>只是想给这个冬天，留下一点点亲手做出来的温暖。</p><a href="#workshop">再装饰一棵树 ↗</a></section>
+  </main>
+  <footer><span>BOLOGNA STUDENTS · CHRISTMAS 2026</span><span>学生独立制作 · 非 Università di Bologna 官方项目</span><a data-local-preview-only hidden href="christmas-one-piece-special-original-local.html">圣诞特别篇 ↗</a><a href="https://bologna-students.github.io/">回到学生指南 ↑</a></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="confirm-reset" class="confirm-dialog"><form method="dialog"><h3>真的要重新开始吗？</h3><p>这会清空当前画布的挂饰和祝福。你已经保存的 PNG 不会被删除。</p><div class="dialog-buttons"><button value="cancel" class="btn lite">再想想</button><button value="confirm" class="btn dark">重新装饰</button></div></form></dialog>
+  <dialog id="forest-submit-dialog" class="confirm-dialog forest-dialog"><form id="forest-submit-form"><h3>把这棵树送进圣诞森林</h3><p>作品会先由管理员审核。请勿在名称、祝福或装饰里加入真实姓名、联系方式、学号、他人隐私或聊天截图。</p><p id="forest-submit-summary" class="forest-submit-summary"></p><label class="forest-consent"><input id="forest-submit-consent" type="checkbox">我确认作品不含他人个人资料或未经同意的内容</label><div id="forest-submit-captcha" class="turnstile-slot"></div><p id="forest-submit-message" class="forest-connection" role="status"></p><div class="dialog-buttons"><button type="button" class="btn lite" data-close-dialog="forest-submit-dialog">先不提交</button><button type="submit" id="forest-submit-confirm" class="btn dark" disabled>提交审核</button></div></form></dialog>
+  <dialog id="forest-action-dialog" class="confirm-dialog forest-dialog"><form id="forest-action-form"><h3 id="forest-action-heading">送一颗星</h3><p id="forest-action-copy">喜欢这棵树，就送它一颗星。</p><label id="forest-report-label" hidden>举报原因<select id="forest-report-reason"><option value="personal_information">包含个人资料</option><option value="harmful_content">伤害或骚扰内容</option><option value="copyright">版权或未经授权内容</option><option value="spam">垃圾内容</option><option value="other">其他需要复核的问题</option></select></label><div id="forest-action-captcha" class="turnstile-slot"></div><p id="forest-action-message" class="forest-connection" role="status"></p><div class="dialog-buttons"><button type="button" class="btn lite" data-close-dialog="forest-action-dialog">取消</button><button type="submit" id="forest-action-confirm" class="btn dark" disabled>确认</button></div></form></dialog>
+  <dialog id="forest-privacy-dialog" class="confirm-dialog forest-dialog"><form id="forest-privacy-form"><h3>我的作品与隐私请求</h3><p>作品投稿不要求注册。此浏览器保存一份仅用于证明作品所有权的随机撤回码；清除浏览器数据后可能无法恢复。隐私请求只保存作品编号、请求类型和随机回执摘要，不收集姓名或联系方式。</p><label for="forest-owned-tree">选择此浏览器提交的作品</label><select id="forest-owned-tree"></select><label for="forest-privacy-type">请求类型</label><select id="forest-privacy-type"><option value="access">获取我的投稿数据副本</option><option value="delete">请求删除我的投稿</option></select><div id="forest-privacy-captcha" class="turnstile-slot"></div><p id="forest-privacy-message" class="forest-connection" role="status"></p><div class="privacy-reference-check"><label for="forest-privacy-reference">查询请求回执</label><input id="forest-privacy-reference" autocomplete="off" maxlength="128"><button type="button" id="forest-privacy-check">查询状态</button><pre id="forest-privacy-result" hidden></pre></div><div class="dialog-buttons"><button type="button" class="btn lite" data-close-dialog="forest-privacy-dialog">关闭</button><button type="submit" id="forest-privacy-confirm" class="btn dark" disabled>提交私密请求</button></div></form></dialog>
+  <dialog id="forest-detail-dialog" class="confirm-dialog forest-dialog"><div id="forest-detail-body"></div><div class="dialog-buttons"><button type="button" class="btn lite" data-close-dialog="forest-detail-dialog">关闭</button></div></dialog>
+</body>
+</html>

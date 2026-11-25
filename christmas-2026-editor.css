@@ -1,0 +1,81 @@
+/* Editor usability additions. The original desktop two-column layout remains intact. */
+.history-controls{display:flex;gap:9px;margin:18px 0 4px}
+.history-controls .btn{flex:1;min-height:44px}
+.history-controls button:disabled{opacity:.48;cursor:not-allowed;transform:none}
+.layer-buttons{display:flex;gap:8px;margin-top:9px}
+.layer-buttons button{flex:1;min-height:44px;border:1px solid #c3d3c3;border-radius:9px;background:#fff;color:#2b6051;font-weight:800}
+.draggable-ornament{touch-action:none}
+.ornament-hit{fill:transparent;pointer-events:all}
+.mobile-editor-dock{display:none}
+.forest-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0}
+.forest-sort{display:flex;gap:7px;overflow-x:auto;max-width:100%;overscroll-behavior-x:contain}
+.forest-sort button{min-height:44px;padding:8px 15px;border:1px solid #d2daca;border-radius:999px;background:#fffaf1;color:#34594d;font-weight:800;white-space:nowrap}
+.forest-sort button[aria-pressed=true]{background:#315d4f;color:#fff5e1;border-color:#315d4f}
+.forest-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.forest-card{min-width:0;padding:14px;border:1px solid #e3dac8;border-radius:18px;background:#fffaf1;box-shadow:0 7px 20px #274a3b0b}
+.forest-card-preview{width:100%;border:0;padding:0;background:#efe7d6;border-radius:12px;overflow:hidden;display:block;touch-action:manipulation}
+.forest-preview-svg{display:block;width:100%;height:auto;max-height:370px;object-fit:contain;pointer-events:none}
+.forest-card h3{font:700 19px Georgia,"Songti SC",serif;margin:13px 3px 6px;overflow-wrap:anywhere}
+.forest-card-wish{min-height:42px;margin:0 3px;color:#5c6d62;font-size:12px;line-height:1.8;overflow-wrap:anywhere}
+.forest-card-meta{margin:9px 3px;color:#85725a;font-size:11px}
+.forest-card-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px}
+.forest-card-actions .btn{min-height:42px;padding:9px 12px;font-size:11px}
+.forest-card-actions .text-button{min-height:42px;padding:8px}
+.forest-empty,.forest-connection{color:#687b70;font-size:12px;line-height:1.8}
+.forest-empty{grid-column:1/-1;padding:24px;border:1px dashed #d2daca;border-radius:15px;text-align:center}
+.forest-more{display:flex;margin:18px auto 0}
+.forest-fallback-tree{padding:50px;text-align:center;font-size:90px}
+.forest-dialog{width:min(520px,calc(100vw - 28px));max-height:min(86vh,760px);overflow:auto}
+.forest-dialog form>label{display:block;margin:14px 0 7px;font-size:12px;font-weight:800}
+.forest-dialog select{width:100%;min-height:44px;border:1px solid #cfdbcf;border-radius:10px;padding:9px;background:#fffdf8;color:#264b40}
+.forest-consent{display:flex!important;align-items:flex-start;gap:9px;line-height:1.65}
+.forest-consent input{margin-top:3px;min-width:18px;min-height:18px;accent-color:#315d4f}
+.turnstile-slot{min-height:68px;margin:14px 0;overflow:hidden}
+.forest-submit-summary{padding:11px;border-radius:10px;background:#eef2e9;color:#34594d;font-weight:800}
+.forest-detail-preview{max-width:300px;margin:12px auto;background:#efe7d6;border-radius:14px;overflow:hidden}
+.forest-detail-preview .forest-preview-svg{max-height:360px}
+.forest-detail-preview~p{line-height:1.8;color:#546b5c}
+.privacy-reference-check{display:grid;gap:7px;padding:12px;border:1px dashed #d6ddce;border-radius:12px;background:#f7f6ed}
+.privacy-reference-check label{margin:0!important}
+.privacy-reference-check input{min-width:0;width:100%;min-height:42px;border:1px solid #cfdbcf;border-radius:9px;padding:8px;font:12px ui-monospace,monospace}
+.privacy-reference-check button{min-height:42px;border:1px solid #c3d3c3;border-radius:9px;background:#fff;color:#2b6051;font-weight:800}
+.privacy-reference-check pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto;font-size:10px;color:#526a5d}
+
+@media(max-width:900px){
+  .mobile-editor-dock{display:block;max-width:680px;margin:10px auto 0;padding:12px;border:1px solid #d8dfd1;border-radius:16px;background:#fffaf1;box-shadow:0 7px 20px #274a3b0d;min-width:0}
+  .mobile-editor-dock .ornament-fieldset{margin:0 0 10px}
+  .mobile-editor-dock .ornament-fieldset legend{font-size:13px}
+  .mobile-editor-dock .small-hint{margin:5px 0 9px}
+  .mobile-editor-dock .ornament-grid{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x pan-y;padding:3px 2px 10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .mobile-editor-dock .ornament{flex:0 0 82px;min-height:82px;scroll-snap-align:start;touch-action:manipulation}
+  .mobile-editor-dock .adjust-panel{margin:0;padding:12px}
+  .mobile-editor-dock .adjust-buttons button,.mobile-editor-dock .layer-buttons button{min-height:48px;font-size:17px;touch-action:manipulation}
+  .mobile-editor-dock .color-options{gap:13px}
+  .mobile-editor-dock .color-swatch{width:38px;height:38px;min-width:38px}
+  .mobile-editor-dock input[type=range]{min-height:36px;touch-action:pan-x}
+  .mobile-editor-dock .history-controls{margin:0 0 10px}
+  .mobile-editor-dock .history-controls .btn{min-height:46px}
+  .forest-gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .mobile-editor-dock .ornament,.mobile-editor-dock .btn{scroll-behavior:auto;transition:none}
+}
+
+@media(max-width:600px){
+  .forest-toolbar{align-items:flex-start;flex-direction:column}
+  .forest-sort{width:100%}
+  .forest-sort button{flex:0 0 auto}
+  .forest-gallery{grid-template-columns:1fr;gap:13px}
+  .forest-card{display:grid;grid-template-columns:minmax(82px,108px) minmax(0,1fr);column-gap:12px;align-items:start;padding:11px}
+  .forest-card-preview{grid-row:1 / span 4;align-self:stretch;min-height:125px}
+  .forest-preview-svg{height:100%;min-height:125px;object-fit:cover}
+  .forest-card h3{margin:2px 0;font-size:16px}
+  .forest-card-wish{min-height:0;font-size:11px}
+  .forest-card-meta{margin:4px 0}
+  .forest-card-actions{grid-column:2;gap:3px;margin-top:3px}
+  .forest-card-actions .btn{min-height:40px;padding:7px 10px}
+  .forest-card-actions .text-button{min-height:40px}
+  .forest-detail-preview{max-width:220px}
+  .forest-dialog{padding:22px}
+}
