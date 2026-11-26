@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UniBo 专业目录｜Bologna Students</title>
+  <style>
+    body { margin: 0; background: #f7f2e8; color: #35251f; font: 1rem/1.6 system-ui, sans-serif; }
+    main { width: min(44rem, calc(100% - 2rem)); margin: 2rem auto; }
+    a { color: #823d32; }
+    input { box-sizing: border-box; width: min(100%, 30rem); padding: .65rem; font: inherit; }
+    article { margin: 1rem 0; padding: 1rem 1.25rem; border: 1px solid #dcc9b3; border-radius: 12px; background: #fffdf8; }
+    h1, h2 { line-height: 1.25; }
+  </style>
+</head>
+<body>
+  <main>
+    <a href="student-services.html">← 学生办事与校园生活</a>
+    <h1>UniBo 专业目录</h1>
+    <p>目前收录 1 个已核实的专业。从详情页查看培养计划、考试、实习及官方统计。</p>
+    <div id="directory-search" hidden>
+      <label for="degree-query">按专业名称、代码或校区筛选</label><br>
+      <input id="degree-query" type="search" placeholder="例如 6641">
+      <p id="degree-search-status" role="status"></p>
+    </div>
+    <article data-degree>
+      <h2><a href="student-services.html#course-management">Informatica per il management</a></h2>
+      <p>2026/27 · 6641 · Bologna（博洛尼亚） · 三年制本科 · 意大利语</p>
+    </article>
+    <p><a href="https://www.unibo.it/it/studiare/lauree-e-lauree-magistrali">通过 UniBo 官方目录查找更多专业 ↗</a></p>
+  </main>
+  <script>
+    const query = document.querySelector("#degree-query");
+    const status = document.querySelector("#degree-search-status");
+    const entries = document.querySelectorAll("[data-degree]");
+    query.addEventListener("input", () => {
+      const words = query.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      let count = 0;
+      for (const entry of entries) {
+        const text = entry.textContent.toLowerCase();
+        entry.hidden = !words.every(word => text.includes(word));
+        if (!entry.hidden) count++;
+      }
+      status.textContent = words.length ? (count ? `找到 ${count} 个专业。` : "暂无匹配。可继续查看 UniBo 官方目录。") : "";
+    });
+    document.querySelector("#directory-search").hidden = false;
+  </script>
+</body>
+</html>
