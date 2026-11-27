@@ -17,7 +17,7 @@
 <body>
   <a class="skip" href="#workshop">跳转到圣诞树编辑器</a>
   <header class="topbar">
-    <a class="brand" href="https://bologna-students.github.io/" aria-label="返回 Bologna Students 学生指南"><span aria-hidden="true">✳</span> Bologna Students</a>
+    <a class="brand" href="https://bologna-students.github.io/" aria-label="返回 Bologna Students 学生指南"><svg class="snowflake-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M12 2v20M4 7l16 10M20 7 4 17M9 4 12 7 15 4M9 20 12 17 15 20M4 7l4 1M4 7l1 4M20 7l-4 1M20 7l-1 4M4 17l4-1M4 17l1-4M20 17l-4-1M20 17l-1-4"/></svg> Bologna Students</a>
     <span class="topbar-note">2026 · CHRISTMAS EDITION <span class="sparkle" aria-hidden="true">✦</span></span>
     <a class="back" href="https://bologna-students.github.io/">返回学生指南 ↗</a>
   </header>
@@ -42,7 +42,7 @@
     <section class="intro-strip" aria-label="活动介绍"><span><b>01</b> 自由摆放挂饰</span><span><b>02</b> 写一句小小愿望</span><span><b>03</b> 保存并分享作品</span></section>
 
     <section id="workshop" class="workshop" aria-labelledby="workshop-heading">
-      <div class="section-heading"><span class="handwrite">The Christmas Workshop</span><h2 id="workshop-heading">我的圣诞树工坊 <span aria-hidden="true">✳</span></h2><p>这是属于你的手工角落。装饰可以拖动，歪一点也没关系。</p></div>
+      <div class="section-heading"><span class="handwrite">The Christmas Workshop</span><h2 id="workshop-heading">我的圣诞树工坊 <svg class="snowflake-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M12 2v20M4 7l16 10M20 7 4 17M9 4 12 7 15 4M9 20 12 17 15 20M4 7l4 1M4 7l1 4M20 7l-4 1M20 7l-1 4M4 17l4-1M4 17l1-4M20 17l-4-1M20 17l-1-4"/></svg></h2><p>这是属于你的手工角落。装饰可以拖动，歪一点也没关系。</p></div>
       <div class="workshop-grid">
         <div class="control-card">
           <div class="panel-head"><span class="kicker">YOUR LITTLE STUDIO</span><span class="counter" id="ornament-count">0 / 60 件挂饰</span></div>
@@ -79,7 +79,7 @@
             </svg>
             <div class="canvas-stamp" aria-hidden="true">HANDMADE<br>IN BOLOGNA ♡</div>
           </div>
-          <div class="canvas-footer"><span>✳ 每一棵树都不需要完美。</span><span>点击挂饰选择 · 手指拖动调整</span></div>
+          <div class="canvas-footer"><span><svg class="snowflake-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M12 2v20M4 7l16 10M20 7 4 17M9 4 12 7 15 4M9 20 12 17 15 20M4 7l4 1M4 7l1 4M20 7l-4 1M20 7l-1 4M4 17l4-1M4 17l1-4M20 17l-4-1M20 17l-1-4"/></svg> 每一棵树都不需要完美。</span><span>点击挂饰选择 · 手指拖动调整</span></div>
           <div class="mobile-editor-dock" id="mobile-editor-dock" aria-label="画布旁快捷编辑工具"></div>
         </div>
       </div>
@@ -87,7 +87,7 @@
 
     <section id="forest" class="forest" aria-labelledby="forest-heading"><div class="section-heading"><span class="handwrite">A forest made by us</span><h2 id="forest-heading">一起点亮圣诞森林</h2><p>每棵树都不一样，每一份认真装饰的心意都值得被看见。</p></div><div class="forest-preview"><div class="forest-illustration" aria-hidden="true"><span>🎄</span><span>🎄</span><span>🎄</span></div><div><span class="eyebrow muted">COMMUNITY CHRISTMAS FOREST</span><h3>一棵树一盏灯，森林由真实作品点亮。</h3><p>提交的作品会先进入审核，只有通过审核的树才会公开展示。作品仅保存结构化装饰数据，不接受图片、HTML 或自定义脚本。</p><p class="forest-badge" id="community-tree-count">森林连接后显示已审核作品与真实灯数。</p><p class="forest-connection" id="forest-status" role="status">本地候选尚未连接圣诞森林 Staging；作品不会被发送或公开。</p></div></div><div class="forest-toolbar"><div class="forest-sort" role="group" aria-label="作品排序"><button type="button" data-forest-sort="latest" aria-pressed="true">最新</button><button type="button" data-forest-sort="popular" aria-pressed="false">人气</button><button type="button" data-forest-sort="random" aria-pressed="false">随机</button></div><button type="button" id="forest-privacy-open" class="btn lite" disabled>我的作品与隐私请求</button></div><div id="forest-gallery" class="forest-gallery" aria-live="polite"></div><button type="button" id="forest-more" class="btn lite forest-more" hidden>继续看作品</button></section>
 
-    <section id="calendar" class="calendar" aria-labelledby="calendar-heading"><div class="section-heading"><span class="handwrite">24 days of little wonders</span><h2 id="calendar-heading">圣诞倒数日历 <span aria-hidden="true">🎁</span></h2><p>从 12 月 1 日开始，每天拆开一份给 Bologna 的小惊喜。</p></div><div class="calendar-layout"><div class="calendar-grid" id="calendar-grid" aria-label="12 月 1 日到 24 日的节日礼盒"></div><aside class="calendar-note"><div class="calendar-note-art" aria-hidden="true">✉️</div><span class="kicker">THE LITTLE LETTER</span><h3 id="calendar-letter-title">圣诞邮局还没开门</h3><p id="calendar-letter-body">先来装饰你的圣诞树吧！12 月 1 日起，每天会多一封小小来信。</p><a id="calendar-action" class="btn lite" hidden></a><span class="small-hint">日历按照设备的 Europe/Rome 日期解锁；这里只是节日体验，不作为奖品资格证明。</span></aside></div></section>
+    <section id="calendar" class="calendar" aria-labelledby="calendar-heading"><div class="section-heading"><span class="handwrite">24 days of little wonders</span><h2 id="calendar-heading">圣诞倒数日历 <span aria-hidden="true">🎁</span></h2><p>从 12 月 1 日开始，每天拆开一份给 Bologna 的小惊喜。</p><a class="calendar-special-link" href="creative-lab/your-christmas-tree.html">生成一棵属于你的星光树 ↗</a></div><div class="calendar-layout"><div class="calendar-grid" id="calendar-grid" aria-label="12 月 1 日到 24 日的节日礼盒"></div><aside class="calendar-note"><div class="calendar-note-art" aria-hidden="true">✉️</div><span class="kicker">THE LITTLE LETTER</span><h3 id="calendar-letter-title">圣诞邮局还没开门</h3><p id="calendar-letter-body">先来装饰你的圣诞树吧！12 月 1 日起，每天会多一封小小来信。</p><a id="calendar-action" class="btn lite" hidden></a><span class="small-hint">日历按照设备的 Europe/Rome 日期解锁；这里只是节日体验，不作为奖品资格证明。</span></aside></div></section>
 
     <section class="last-note"><span>♡</span><p>我们不是真的要拥有一片森林。<br>只是想给这个冬天，留下一点点亲手做出来的温暖。</p><a href="#workshop">再装饰一棵树 ↗</a></section>
   </main>
