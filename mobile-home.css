@@ -1,0 +1,207 @@
+/* Focused phone-first layer. Desktop layout remains owned by index.html. */
+.mobile-shortcuts {
+  display: none;
+}
+
+.hero-about {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.hero-about summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--red-dark);
+  text-underline-offset: 3px;
+}
+
+.hero-about .hero-rule {
+  margin: 6px 0 0;
+}
+
+.event-archive-status {
+  border-left: 3px solid #b77e45;
+  padding-left: 10px;
+}
+
+@media (max-width: 959px) {
+  .mobile-shortcuts {
+    order: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    margin: 10px 0 4px;
+  }
+
+  .mobile-shortcut {
+    min-width: 0;
+    min-height: 68px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 11px;
+    border: 1px solid rgba(120, 83, 63, .19);
+    border-radius: 12px;
+    color: var(--ink);
+    background: rgba(255, 253, 247, .9);
+    box-shadow: 0 5px 14px rgba(69, 46, 34, .045);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-shortcut:active {
+    background: var(--wash);
+  }
+
+  .mobile-shortcut:focus-visible {
+    outline: 3px solid rgba(164, 60, 50, .45);
+    outline-offset: 2px;
+  }
+
+  .shortcut-icon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(164, 60, 50, .2);
+    border-radius: 11px 9px 12px 8px;
+    color: var(--red-dark);
+    background: #f7efe2;
+    transform: rotate(-2deg);
+  }
+
+  .shortcut-icon svg {
+    width: 25px;
+    height: 25px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.45;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .mobile-shortcut > span:last-child {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .mobile-shortcut strong {
+    color: var(--red-dark);
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .mobile-shortcut small {
+    color: var(--muted);
+    font-size: 9px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .tools {
+    order: 2;
+    padding-top: 9px;
+  }
+
+  .sponsor-hero {
+    order: 3;
+  }
+}
+
+@media (max-width: 600px) {
+  .top-layout {
+    padding-top: 15px;
+    padding-bottom: 8px;
+  }
+
+  .hero h1 {
+    margin-top: 6px;
+    font-size: clamp(29px, 8vw, 36px);
+    line-height: 1.12;
+    letter-spacing: -.04em;
+  }
+
+  .hero .subtitle {
+    margin-top: 5px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .hero-updated {
+    margin-top: 5px;
+    padding: 2px 7px;
+    font-size: 9px;
+  }
+
+  .hero-source {
+    margin-top: 6px;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .hero-about {
+    margin-top: 4px;
+    font-size: 10px;
+  }
+
+  .hero .november-entry:not(.christmas-entry),
+  .hero .campus-entry {
+    display: none;
+  }
+
+  html.halloween-edition .hero-copy {
+    padding-bottom: 50px;
+  }
+
+  .mobile-shortcuts {
+    margin-top: 8px;
+    gap: 7px;
+  }
+
+  .mobile-shortcut {
+    min-height: 62px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .shortcut-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 10px 8px 11px 7px;
+  }
+
+  .shortcut-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .mobile-shortcut strong {
+    font-size: 11px;
+  }
+
+  .mobile-shortcut small {
+    font-size: 8.5px;
+  }
+
+  .sponsor-hero {
+    display: none;
+  }
+
+  .event-archive-status {
+    font-size: 11px;
+    line-height: 1.6;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-shortcut,
+  .shortcut-icon {
+    transition: none !important;
+    transform: none;
+  }
+}

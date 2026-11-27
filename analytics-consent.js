@@ -8,7 +8,18 @@
   var EVENT_NAMES = {
     map: "guide_map_link",
     arcade: "halloween_arcade_entry",
-    partner: "sponsor_link"
+    partner: "sponsor_link",
+    shortcutDates: "home_shortcut_dates_click",
+    shortcutServices: "home_shortcut_services_click",
+    shortcutFood: "home_shortcut_food_click",
+    shortcutSearch: "home_shortcut_search_click"
+  };
+  var DATA_EVENT_NAMES = {
+    "arcade-entry": EVENT_NAMES.arcade,
+    "shortcut-dates": EVENT_NAMES.shortcutDates,
+    "shortcut-services": EVENT_NAMES.shortcutServices,
+    "shortcut-food": EVENT_NAMES.shortcutFood,
+    "shortcut-search": EVENT_NAMES.shortcutSearch
   };
   var volatileChoice = null;
   var trackerStarted = false;
@@ -41,7 +52,7 @@
 
   function safePagePath() {
     var path = window.location.pathname.replace(/\/+$/, "") || "/";
-    var allowedPaths = ["/", "/index.html", "/arcade.html", "/privacy.html"];
+    var allowedPaths = ["/", "/index.html", "/november-2026.html", "/december-2026.html", "/student-services.html", "/arcade.html", "/privacy.html"];
     return allowedPaths.indexOf(path) === -1 ? null : path;
   }
 
@@ -65,8 +76,12 @@
     if (!pagePath) return false;
 
     var name = payload && typeof payload.name === "string" ? payload.name : "";
-    var allowedNames = [EVENT_NAMES.map, EVENT_NAMES.arcade, EVENT_NAMES.partner];
-    if (type === "event" && allowedNames.indexOf(name) === -1) return false;
+    var allowedNames = Object.keys(EVENT_NAMES).map(function (key) { return EVENT_NAMES[key]; });
+    // Umami's tracker currently calls the before-send hook with type "event"
+    // for track(callback), even when the callback returns no event name. The
+    // server treats that nameless event as a pageview. Keep the hook's policy
+    // aligned with that wire format while still restricting named events.
+    if (name && allowedNames.indexOf(name) === -1) return false;
     if (type === "pageview" && name) return false;
 
     var safePayload = {
@@ -77,7 +92,7 @@
       language: navigator.language || "",
       referrer: externalReferrerOrigin()
     };
-    if (type === "event") safePayload.name = name;
+    if (name) safePayload.name = name;
     return safePayload;
   };
 
@@ -103,9 +118,16 @@
     window.umami.track(name);
   }
 
+  function hasDoNotTrack() {
+    var values = [navigator.doNotTrack, navigator.msDoNotTrack, window.doNotTrack];
+    return values.some(function (value) {
+      return value === 1 || value === "1" || (typeof value === "string" && value.toLowerCase() === "yes");
+    });
+  }
+
   function startTracker() {
     if (trackerStarted || !allowedPage() || readChoice() !== "accepted") return;
-    if (navigator.doNotTrack === "1" || window.doNotTrack === "1") {
+    if (hasDoNotTrack()) {
       if (ui && ui.status) ui.status.textContent = "浏览器的 Do Not Track 设置已阻止统计。";
       return;
     }
@@ -138,9 +160,10 @@
       var href = anchor.href || "";
       var isPartnerLink = !!anchor.closest("[data-event-partner]");
       var isMapLink = /(^|\.)google\.[^/]+\/maps(?:\/|\?|$)/i.test(href.replace(/^https?:\/\//i, ""));
+      var dataEvent = anchor.dataset ? DATA_EVENT_NAMES[anchor.dataset.bolognaAnalytics] : "";
 
       if (isMapLink) trackEvent(EVENT_NAMES.map);
-      if (anchor.dataset && anchor.dataset.bolognaAnalytics === "arcade-entry") trackEvent(EVENT_NAMES.arcade);
+      if (dataEvent) trackEvent(dataEvent);
       if (isPartnerLink) trackEvent(EVENT_NAMES.partner);
     }, true);
   }
@@ -180,6 +203,13 @@
       state: root.querySelector("#umami-consent-state"),
       status: root.querySelector("#umami-consent-status")
     };
+
+    // Keep the persistent preference control in normal document flow instead of floating over mobile content.
+    var footer = document.querySelector("footer");
+    if (footer && ui.trigger) {
+      ui.trigger.classList.add("umami-preferences-trigger--inline");
+      footer.appendChild(ui.trigger);
+    }
 
     root.addEventListener("click", function (event) {
       var button = event.target.closest("[data-umami-choice]");
