@@ -1,0 +1,1320 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10201d">
+  <meta name="creative-lab-share-origin" content="">
+  <title>Your Christmas Tree · Bologna Students</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --night: #10201d;
+      --night-soft: #182a25;
+      --gold: #e0bd76;
+      --gold-soft: #f2ddb0;
+      --muted: #bdc7b7;
+      font-family: "Segoe UI", "Noto Sans SC", sans-serif;
+      color: #f4efe2;
+      background: var(--night);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 49% 28%, color-mix(in srgb, var(--gold) 13%, transparent), transparent 44%),
+        radial-gradient(ellipse at 14% 90%, #496a5744, transparent 36%),
+        linear-gradient(160deg, var(--night-soft), var(--night) 64%);
+    }
+    a { color: var(--gold-soft); text-decoration: none; }
+    button, input { font: inherit; }
+    main { width: min(1180px, 100%); margin: auto; padding: max(20px, env(safe-area-inset-top)) 20px 38px; }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 26px; }
+    .back { display: inline-flex; align-items: center; min-height: 44px; color: var(--gold-soft); }
+    .brand { color: #d3bd87; font: 500 .78rem/1.2 Georgia, serif; letter-spacing: .16em; text-align: right; }
+    .eyebrow { color: var(--gold); font-size: .74rem; letter-spacing: .18em; text-transform: uppercase; }
+    h1 { margin: 8px 0 10px; font: 500 clamp(2.45rem, 6vw, 4.3rem)/1 Georgia, serif; letter-spacing: -.035em; }
+    .intro { max-width: 720px; margin: 0; color: var(--muted); line-height: 1.65; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.48fr) minmax(310px, .82fr); gap: 22px; align-items: start; margin-top: 24px; }
+    .tree-stage { position: relative; overflow: hidden; min-width: 0; border: 1px solid #e4c98148; border-radius: 24px; background: #0d1715; box-shadow: 0 22px 70px #0006, inset 0 0 80px #d6b8660b; }
+    #treeCanvas { display: block; width: 100%; height: auto; aspect-ratio: 1.12 / 1; touch-action: none; }
+    .stage-top, .stage-bottom { position: absolute; left: 16px; right: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; pointer-events: none; }
+    .stage-top { top: 14px; }
+    .stage-bottom { bottom: 14px; }
+    .stage-label { color: #e5d8b4b8; font-size: .73rem; letter-spacing: .12em; text-shadow: 0 2px 10px #000; }
+    .gesture-tip { color: #e6ddc9; font-size: .8rem; text-align: right; text-shadow: 0 2px 10px #000; }
+    .side { display: grid; gap: 13px; }
+    .glass-card { padding: 18px; border: 1px solid #ffffff22; border-radius: 18px; background: linear-gradient(145deg, #ffffff0d, #ffffff05); box-shadow: 0 12px 32px #0002; }
+    .tree-name { margin: 6px 0 8px; color: var(--gold-soft); font: 500 clamp(1.55rem, 3vw, 2.1rem)/1.12 Georgia, serif; }
+    .serial { color: #d5c8a8; font: 500 .76rem/1.5 "Courier New", monospace; letter-spacing: .1em; }
+    .blessing { margin: 13px 0 0; color: #e1dccd; font: italic 1.08rem/1.55 Georgia, "Noto Serif SC", serif; }
+    .palette-line { display: flex; align-items: center; gap: 9px; margin-top: 14px; color: #bec8b7; font-size: .82rem; }
+    .swatches { display: flex; gap: 5px; }
+    .swatches i { display: block; width: 14px; height: 14px; border: 1px solid #ffffff55; border-radius: 50%; }
+    .qr-row { display: grid; grid-template-columns: 112px 1fr; gap: 14px; align-items: center; }
+    .qr-row[hidden] { display: none; }
+    #qrCanvas { display: block; width: 112px; height: 112px; padding: 7px; border-radius: 10px; background: #f8f2e4; image-rendering: pixelated; }
+    .qr-title { margin: 0 0 6px; color: var(--gold-soft); font: 500 1rem Georgia, serif; }
+    .qr-help { margin: 0; color: #bdc7b7; font-size: .81rem; line-height: 1.45; overflow-wrap: anywhere; }
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    button {
+      min-height: 46px;
+      padding: 10px 12px;
+      color: #f5eddc;
+      border: 1px solid #ffffff3b;
+      border-radius: 999px;
+      background: #ffffff0a;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background .18s ease, border-color .18s ease, transform .18s ease;
+    }
+    button:hover { border-color: var(--gold); background: #ffffff14; }
+    button:active { transform: scale(.985); }
+    button.primary { color: #1a211a; border-color: var(--gold); background: var(--gold); font-weight: 600; }
+    button.wide { grid-column: 1 / -1; }
+    button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid #f5dc9c; outline-offset: 3px; }
+    .share-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 12px; }
+    .share-field input { width: 100%; min-width: 0; min-height: 42px; padding: 8px 10px; color: #e9dec7; border: 1px solid #ffffff2b; border-radius: 9px; background: #07100f; font-size: .75rem; }
+    .share-field button { min-height: 42px; padding-inline: 12px; }
+    .status { min-height: 1.4em; margin: 0; color: var(--gold-soft); font-size: .84rem; }
+    .small-print { margin: 0; color: #aab5a7; font-size: .75rem; line-height: 1.5; }
+    .print-stage { position: fixed; left: -10000px; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+    #card-preview img { display: block; width: min(100%, 260px); height: auto; margin-block: 12px; }
+    @media (max-width: 820px) {
+      main { padding-inline: 14px; }
+      .layout { grid-template-columns: 1fr; gap: 14px; }
+      .side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .glass-card:first-child, .controls, .status, .small-print { grid-column: 1 / -1; }
+    }
+    @media (max-width: 520px) {
+      header { margin-bottom: 21px; }
+      .brand { font-size: .65rem; }
+      .layout { margin-top: 18px; }
+      .tree-stage { border-radius: 18px; }
+      .side { grid-template-columns: 1fr; }
+      .glass-card:first-child, .controls, .status, .small-print { grid-column: auto; }
+      .qr-row { grid-template-columns: 96px 1fr; }
+      #qrCanvas { width: 96px; height: 96px; }
+      button { min-height: 48px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      button:active { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <a class="back" href="index.html">← Creative Lab</a>
+      <div class="brand">BOLOGNA STUDENTS<br>CHRISTMAS 2026</div>
+    </header>
+    <p class="eyebrow">A Little Magic Between the Two Towers</p>
+    <h1>Your Christmas Tree</h1>
+    <p class="intro">一棵树，一枚只属于你的随机种子。拖动旋转它，轻触让星光散开；收藏卡和互动页面都能恢复同一棵树。</p>
+    <section class="layout" aria-label="专属圣诞树">
+      <div class="tree-stage">
+        <canvas id="treeCanvas" width="900" height="804" aria-label="可拖动旋转、触摸聚散的金色粒子圣诞树"></canvas>
+        <div class="stage-top"><span class="stage-label">A TREE MADE OF LIGHT</span><span class="stage-label" id="particleLabel">7200 LIGHTS</span></div>
+        <div class="stage-bottom"><span class="stage-label" id="environmentLabel">WINTER AIR</span><span class="gesture-tip">拖动旋转 · 轻触星火</span></div>
+      </div>
+      <aside class="side">
+        <section class="glass-card" aria-live="polite">
+          <p class="eyebrow">YOUR LITTLE CONSTELLATION</p>
+          <h2 class="tree-name" id="treeName">The Lantern Between Towers</h2>
+          <div class="serial" id="serial">BT-00000-00000-00000-00000-000000</div>
+          <p class="blessing" id="blessing">May a small light find you on the longest night.</p>
+          <div class="palette-line"><span>专属配色</span><span class="swatches" id="swatches"></span><span id="paletteName"></span></div>
+        </section>
+        <section class="glass-card qr-row" id="qrRow" hidden>
+          <canvas id="qrCanvas" width="224" height="224" aria-label="当前圣诞树分享链接二维码"></canvas>
+          <div><p class="qr-title">把这枚星光寄出去</p><p class="qr-help">链接和二维码都含有树种子，打开后会恢复同一棵树。</p></div>
+        </section>
+        <section class="controls" aria-label="圣诞树操作">
+          <button class="primary" id="saveTree" type="button">收藏这棵树</button>
+          <button id="restoreTree" type="button">恢复收藏树</button>
+          <button id="newTree" type="button">再遇见一棵树</button>
+          <button id="surprise" type="button">点亮星火惊喜</button>
+          <button class="wide" id="exportCard" type="button">导出 1080×1920 收藏卡 PNG</button>
+          <button class="wide" id="shareTree" type="button">复制互动分享链接</button>
+        </section>
+        <p class="status" id="status" aria-live="polite">正在为你点亮一棵树。</p>
+        <p class="small-print" id="localNotice">收藏只在此浏览器保存随机种子。分享链接使用当前网页地址和树种子。</p>
+        <section id="card-preview" aria-label="收藏卡预览" hidden>
+          <img id="card-image" alt="1080×1920 圣诞树收藏卡">
+          <a id="card-download" download>下载 PNG</a>
+          <p class="small-print">若浏览器无法下载，可长按图片保存。</p>
+        </section>
+      </aside>
+    </section>
+  </main>
+  <canvas class="print-stage" id="printCanvas" width="1080" height="1920" aria-hidden="true"></canvas>
+  <script>
+    "use strict";
+    const treeCanvas = document.querySelector("#treeCanvas");
+    const treeCtx = treeCanvas.getContext("2d", { alpha: false });
+    const qrCanvas = document.querySelector("#qrCanvas");
+    const qrCtx = qrCanvas.getContext("2d");
+    const printCanvas = document.querySelector("#printCanvas");
+    const printCtx = printCanvas.getContext("2d");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const storageKey = "bologna-christmas-2026-personal-tree";
+    const paletteBook = [
+      { name: "Bosco e champagne", bg: "#10201d", deep: "#285244", leaf: "#6e9b77", ribbon: "#d4aa5e", light: "#fae9b9", accent: "#f2ce83" },
+      { name: "Blue hour", bg: "#101b2d", deep: "#344d72", leaf: "#769bb5", ribbon: "#b99bda", light: "#e4edff", accent: "#f2d18c" },
+      { name: "Cedar ember", bg: "#241914", deep: "#754735", leaf: "#b17651", ribbon: "#d1a35c", light: "#f1dec0", accent: "#f3c975" },
+      { name: "Plum velvet", bg: "#211a29", deep: "#574168", leaf: "#9b789a", ribbon: "#d2a574", light: "#f4e3d4", accent: "#efd28d" },
+      { name: "Frosted pine", bg: "#142323", deep: "#416866", leaf: "#94b9ae", ribbon: "#d9c9a4", light: "#eff5e8", accent: "#e6c978" },
+      { name: "Quiet rose", bg: "#251b20", deep: "#704451", leaf: "#b27a78", ribbon: "#ddba7a", light: "#f7e7d9", accent: "#f1c98d" },
+      { name: "Olive dusk", bg: "#202117", deep: "#626344", leaf: "#9d9c68", ribbon: "#c79d56", light: "#f2e5bc", accent: "#e4c478" },
+      { name: "Silver night", bg: "#151e26", deep: "#526d7c", leaf: "#91aeb5", ribbon: "#bdc6c6", light: "#f1f1e5", accent: "#e5d5a5" }
+    ];
+    const treeNames = [
+      "The Lantern under the Porticoes", "A Quiet Star for the Way Home", "The Winter Window in Bologna", "A Little Light between Towers",
+      "The Velvet Night of Wishes", "The Amber Lantern on Via Zamboni", "The Hidden Light of Bologna", "A Golden Hour in Winter",
+      "The Snowlit Courtyard", "The Cedar Door after Snow", "A Moonlit Promise", "A Tender Place beneath the Stars",
+      "The First Snow over Bologna", "A Small Wish by the Window", "The Soft Blue of Winter", "The Last Light in the Courtyard",
+      "A Warm Room above the Portico", "The Bell that Kept the Night", "A Star on the Long Way Home", "The Quiet Hour between Towers",
+      "The Winter Garden of Small Things", "A Lantern for December", "The Night the City Glowed", "A Place Saved beneath the Sky"
+    ];
+    const blessings = [
+      "May a small light find you on the longest night.",
+      "May your quiet wishes find their way home.",
+      "May Bologna leave a little warmth in your pocket.",
+      "May someone save you a place beneath the winter sky.",
+      "May the year ahead open softly, like a lit window.",
+      "May the two towers keep watch over your gentlest hopes.",
+      "May every long way lead you toward a welcoming light.",
+      "May a little wonder stay with you after the snow.",
+      "May your next beginning feel kind and unhurried.",
+      "May winter carry your best wishes across the city.",
+      "May you find warmth in the places you already belong.",
+      "May a bright thought meet you at just the right hour."
+    ];
+    const environments = ["Falling snow", "Rose petals", "A passing meteor"];
+    const QR_BLOCKS = [
+      { data: [19], ecc: 7 }, { data: [34], ecc: 10 }, { data: [55], ecc: 15 },
+      { data: [80], ecc: 20 }, { data: [108], ecc: 26 }, { data: [68, 68], ecc: 18 },
+      { data: [78, 78], ecc: 20 }, { data: [97, 97], ecc: 24 }, { data: [116, 116], ecc: 30 },
+      { data: [68, 68, 69, 69], ecc: 18 }
+    ];
+    const QR_ALIGN = [[], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
+    let currentSeed = "";
+    let currentTree = null;
+    let particles = [];
+    let pointer = null;
+    let dragging = false;
+    let lastPointer = null;
+    let rotation = 0;
+    let burst = [];
+    let frame = 0;
+    let raf = 0;
+    let lastFrameAt = 0;
+    let logicalWidth = 900;
+    let logicalHeight = 804;
+    let dpr = 1;
+
+    function seedHex() {
+      const bytes = new Uint8Array(16);
+      if (!window.crypto || typeof window.crypto.getRandomValues !== "function") throw new Error("secure_random_unavailable");
+      window.crypto.getRandomValues(bytes);
+      return Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+    }
+    function validSeed(value) { return typeof value === "string" && /^[0-9a-f]{32}$/i.test(value); }
+    function makeRandom(seed) {
+      const state = new Uint32Array(4);
+      for (let i = 0; i < 4; i++) state[i] = Number.parseInt(seed.slice(i * 8, i * 8 + 8), 16) >>> 0;
+      if (!(state[0] | state[1] | state[2] | state[3])) state[0] = 0x9e3779b9;
+      return function next() {
+        const result = Math.imul(((Math.imul(state[1], 5) << 7) | (Math.imul(state[1], 5) >>> 25)) >>> 0, 9) >>> 0;
+        const t = state[1] << 9;
+        state[2] ^= state[0]; state[3] ^= state[1]; state[1] ^= state[2]; state[0] ^= state[3]; state[2] ^= t;
+        state[3] = ((state[3] << 11) | (state[3] >>> 21)) >>> 0;
+        return result / 4294967296;
+      };
+    }
+    function choose(items, random) { return items[Math.floor(random() * items.length)]; }
+    function serialFor(seed) {
+      const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+      let value = 0;
+      let bits = 0;
+      let encoded = "";
+      for (let i = 0; i < seed.length; i += 2) {
+        value = (value << 8) | Number.parseInt(seed.slice(i, i + 2), 16);
+        bits += 8;
+        while (bits >= 5) {
+          bits -= 5;
+          encoded += alphabet[(value >>> bits) & 31];
+          value &= (1 << bits) - 1;
+        }
+      }
+      if (bits) encoded += alphabet[(value << (5 - bits)) & 31];
+      const groups = [encoded.slice(0, 5), encoded.slice(5, 10), encoded.slice(10, 15), encoded.slice(15, 20), encoded.slice(20)];
+      return "BT-" + groups.join("-");
+    }
+    function createProfile(seed) {
+      const random = makeRandom(seed);
+      const aspect = 0.62 + random() * 0.19;
+      return {
+        style: ["Spiral", "The Coded Christmas", "Digital Aurora"][parseInt(seed.slice(-4), 16) % 3],
+        palette: paletteBook[Math.floor(random() * paletteBook.length)],
+        height: 0.68 + random() * 0.13,
+        aspect,
+        turns: 2.1 + random() * 2.7,
+        tiers: 7 + Math.floor(random() * 5),
+        starPoints: 5 + Math.floor(random() * 4),
+        glow: 0.62 + random() * 0.33,
+        spin: 0.00013 + random() * 0.00028,
+        environment: Math.floor(random() * environments.length),
+        name: choose(treeNames, random),
+        blessing: choose(blessings, random),
+        nameVariant: Math.floor(random() * 4),
+        serial: serialFor(seed),
+        random
+      };
+    }
+    function shapePoints(draw, size, random) {
+      const surface = document.createElement("canvas");
+      surface.width = surface.height = size;
+      const context = surface.getContext("2d", { willReadFrequently: true });
+      draw(context, size);
+      const data = context.getImageData(0, 0, size, size).data;
+      const points = [];
+      for (let y = 0; y < size; y += 2) {
+        for (let x = 0; x < size; x += 2) {
+          const index = (y * size + x) * 4;
+          if (data[index + 3] < 140 || data[index] + data[index + 1] + data[index + 2] < 90) continue;
+          const brightness = (data[index] + data[index + 1] + data[index + 2]) / 3;
+          points.push({ x: x / size - 0.5, y: y / size - 0.5, brightness: brightness / 255 });
+        }
+      }
+      for (let i = points.length - 1; i > 0; i--) {
+        const j = Math.floor(random() * (i + 1));
+        [points[i], points[j]] = [points[j], points[i]];
+      }
+      return points;
+    }
+    function drawStar(context, cx, cy, outer, inner, count, rotationAngle) {
+      context.beginPath();
+      for (let i = 0; i < count * 2; i++) {
+        const radius = i % 2 ? inner : outer;
+        const angle = rotationAngle - Math.PI / 2 + i * Math.PI / count;
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        if (i === 0) context.moveTo(x, y); else context.lineTo(x, y);
+      }
+      context.closePath();
+      context.fill();
+    }
+    const glowSprites = new Map();
+    function glowSprite(color) {
+      if (glowSprites.has(color)) return glowSprites.get(color);
+      const sprite = document.createElement("canvas");
+      sprite.width = sprite.height = 64;
+      const glowCtx = sprite.getContext("2d");
+      const gradient = glowCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      gradient.addColorStop(0, color + "78");
+      gradient.addColorStop(0.2, color + "55");
+      gradient.addColorStop(0.58, color + "1c");
+      gradient.addColorStop(1, color + "00");
+      glowCtx.fillStyle = gradient;
+      glowCtx.fillRect(0, 0, 64, 64);
+      glowSprites.set(color, sprite);
+      return sprite;
+    }
+    function paintGlow(ctx, x, y, radius, color, opacity) {
+      const size = Math.max(8, radius * 2);
+      const previousAlpha = ctx.globalAlpha;
+      ctx.globalAlpha = previousAlpha * opacity;
+      ctx.drawImage(glowSprite(color), x - size / 2, y - size / 2, size, size);
+      ctx.globalAlpha = previousAlpha;
+    }
+    function makeMask(profile) {
+      const size = 512;
+      const random = makeRandom(currentSeed);
+      const tones = { canopy: "rgb(110,110,110)", branch: "rgb(165,165,165)", garland: "rgb(220,220,220)", ornament: "rgb(255,255,255)" };
+      function draw(context, side) {
+        const cx = side * 0.5;
+        const top = side * 0.12;
+        const bottom = side * 0.82;
+        const half = side * profile.aspect * 0.48;
+        const center = side * (0.49 + (random() - 0.5) * 0.025);
+        const topX = cx + center - side * 0.49;
+        context.fillStyle = tones.canopy;
+        context.beginPath();
+        context.moveTo(cx, top);
+        context.bezierCurveTo(cx - half * 0.1, top + side * 0.13, cx - half * 0.76, bottom - side * 0.16, cx - half, bottom);
+        context.quadraticCurveTo(cx, bottom + side * 0.035, cx + half, bottom);
+        context.bezierCurveTo(cx + half * 0.72, bottom - side * 0.17, cx + half * 0.1, top + side * 0.12, cx, top);
+        context.fill();
+        context.fillStyle = tones.branch;
+        for (let tier = 0; tier < profile.tiers; tier++) {
+          const progress = (tier + 1) / (profile.tiers + 1);
+          const y = top + progress * (bottom - top);
+          const width = half * progress * (0.82 + random() * 0.12);
+          context.beginPath();
+          context.moveTo(cx - width * 0.72, y - side * 0.014);
+          context.lineTo(cx, y + side * 0.018);
+          context.lineTo(cx + width * 0.72, y - side * 0.014);
+          context.lineWidth = side * 0.009;
+          context.lineCap = "round";
+          context.strokeStyle = tones.branch;
+          context.stroke();
+        }
+        for (let strand = 0; strand < 3; strand++) {
+          context.beginPath();
+          for (let step = 0; step <= 1200; step++) {
+            const t = step / 1200;
+            const y = top + side * 0.055 + t * (bottom - top - side * 0.08);
+            const edge = Math.min(1, (y - top) / (bottom - top));
+            const envelope = (profile.style === "The Coded Christmas" ? Math.pow(edge, 0.88) : Math.sin(Math.PI * edge)) * half * 0.84;
+            const angle = t * Math.PI * 2 * profile.turns + strand * Math.PI * 2 / 3;
+            const x = cx + Math.sin(angle) * envelope;
+            if (step === 0) context.moveTo(x, y); else context.lineTo(x, y);
+          }
+          context.strokeStyle = tones.garland;
+          context.lineWidth = side * 0.0048;
+          context.lineCap = "round";
+          context.stroke();
+        }
+        context.fillStyle = tones.ornament;
+        const ornamentCount = 18 + Math.floor(random() * 18);
+        for (let i = 0; i < ornamentCount; i++) {
+          const y = top + side * 0.09 + random() * (bottom - top - side * 0.12);
+          const edge = (y - top) / (bottom - top);
+          const extent = (profile.style === "The Coded Christmas" ? Math.pow(edge, 0.88) : Math.sin(Math.PI * edge)) * half * 0.8;
+          const x = cx + (random() * 2 - 1) * extent;
+          const radius = side * (0.006 + random() * 0.007);
+          context.beginPath();
+          context.arc(x, y, radius, 0, Math.PI * 2);
+          context.fill();
+        }
+        context.fillStyle = tones.branch;
+        context.fillRect(cx - side * 0.034, bottom - 1, side * 0.068, side * 0.11);
+      }
+      return shapePoints(draw, size, random);
+    }
+    function qualityCount() {
+      const width = Math.min(window.innerWidth || 360, window.screen && window.screen.width || 360);
+      const memory = navigator.deviceMemory || 8;
+      if (width < 540) return memory <= 2 ? 1200 : 2800;
+      if (memory <= 2) return 1800;
+      if (memory <= 4) return 4800;
+      return 7200;
+    }
+    function buildParticles(mask, profile, count) {
+      const random = makeRandom(currentSeed);
+      const result = new Array(count);
+      for (let i = 0; i < count; i++) {
+        const source = mask[Math.floor(random() * mask.length)];
+        const halfWidth = profile.aspect * Math.max(0.12, Math.sin(Math.PI * (source.y + 0.5)));
+        const volume = Math.max(0, 1 - Math.min(1, Math.abs(source.x) / halfWidth));
+        const depth = (random() * 2 - 1) * volume * 0.22;
+        const choice = random();
+        const colors = profile.palette;
+        let color = source.brightness > 0.92 ? colors.light : choice < 0.11 ? colors.accent : choice < 0.27 ? colors.ribbon : choice < 0.52 ? colors.leaf : colors.deep;
+        result[i] = {
+          x: random() * 2 - 1, y: random() * 2 - 1, z: depth,
+          tx: source.x * 2, ty: (source.y * 2 + 0.06) * 0.8,
+          size: 0.65 + random() * (source.brightness > 0.92 ? 1.8 : 1.1),
+          phase: random() * Math.PI * 2,
+          glow: source.brightness > 0.92 || choice < 0.1,
+          color
+        };
+      }
+      return result;
+    }
+    function setTheme(profile) {
+      document.documentElement.style.setProperty("--night", profile.palette.bg);
+      document.documentElement.style.setProperty("--night-soft", profile.palette.deep);
+      document.documentElement.style.setProperty("--gold", profile.palette.accent);
+      document.documentElement.style.setProperty("--gold-soft", profile.palette.light);
+      document.querySelector("#treeName").textContent = profile.name;
+      document.querySelector("#serial").textContent = profile.serial;
+      document.querySelector("#blessing").textContent = profile.blessing;
+      document.querySelector("#paletteName").textContent = profile.style + " · " + profile.palette.name;
+      document.querySelector("#particleLabel").textContent = particles.length + " LIGHTS";
+      document.querySelector("#environmentLabel").textContent = environments[profile.environment].toUpperCase();
+      const swatches = document.querySelector("#swatches");
+      swatches.replaceChildren();
+      [profile.palette.bg, profile.palette.deep, profile.palette.leaf, profile.palette.ribbon, profile.palette.light].forEach(color => {
+        const swatch = document.createElement("i");
+        swatch.style.background = color;
+        swatches.append(swatch);
+      });
+    }
+    function newTree(seed, options = {}) {
+      currentSeed = seed.toLowerCase();
+      currentTree = createProfile(currentSeed);
+      const mask = makeMask(currentTree);
+      particles = buildParticles(mask, currentTree, options.print ? 9500 : qualityCount());
+      rotation = currentTree.random() * Math.PI * 2;
+      setTheme(currentTree);
+      const publicUrl = shareUrl();
+      const qrEnabled = Boolean(publicUrl && makeQrMatrix(publicUrl));
+      drawQr(publicUrl);
+      document.querySelector("#qrRow").hidden = !qrEnabled;
+      if (options.updateAddress && location.protocol !== "file:") {
+        const url = new URL(location.href);
+        url.searchParams.set("s", currentSeed);
+        history.replaceState(null, "", url);
+      }
+      draw();
+    }
+    function shareUrl() {
+      return shareUrlFor(currentSeed);
+    }
+    function resize() {
+      const rect = treeCanvas.getBoundingClientRect();
+      if (!rect.width) return;
+      logicalWidth = rect.width;
+      logicalHeight = rect.height;
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      treeCanvas.width = Math.round(logicalWidth * dpr);
+      treeCanvas.height = Math.round(logicalHeight * dpr);
+      treeCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      draw();
+    }
+    function projectParticle(point, cx, cy, scaleX, scaleY, angle, time, spread) {
+      const sway = reducedMotion ? 0 : Math.sin(time * 0.00055 + point.phase) * 0.006;
+      const x = (point.tx + sway) * scaleX;
+      const y = point.ty * scaleY;
+      const z = point.z * scaleX;
+      const rotatedX = x * Math.cos(angle) - z * Math.sin(angle);
+      const rotatedZ = x * Math.sin(angle) + z * Math.cos(angle);
+      const focal = scaleX * 4.1;
+      const perspective = focal / (focal + rotatedZ);
+      const burstX = spread ? point.x * scaleX * spread : 0;
+      const burstY = spread ? point.y * scaleY * spread : 0;
+      return { x: cx + rotatedX * perspective + burstX, y: cy + y * perspective + burstY, size: point.size * Math.max(0.55, perspective) };
+    }
+    function drawAmbient(ctx, width, height, profile, time, exportMode) {
+      const random = makeRandom(currentSeed);
+      const count = exportMode ? 170 : 115;
+      for (let i = 0; i < count; i++) {
+        const x = random() * width;
+        let y = random() * height;
+        if (!reducedMotion && !exportMode) y = (y + time * (0.008 + random() * 0.018)) % height;
+        const radius = 0.5 + random() * (i % 11 === 0 ? 1.8 : 0.8);
+        const colors = profile.palette;
+        ctx.globalAlpha = 0.2 + random() * 0.56;
+        ctx.fillStyle = i % 5 === 0 ? colors.light : colors.accent;
+        if (profile.environment === 1 && i % 3 === 0) {
+          ctx.save(); ctx.translate(x, y); ctx.rotate(random() * Math.PI); ctx.fillRect(-radius, -radius * 0.45, radius * 2, radius * 0.9); ctx.restore();
+        } else {
+          ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+    function auroraRibbonHalfWidth(progress, ribbonWidth) {
+      const t = Math.max(0, Math.min(1, progress));
+      return ribbonWidth * (0.12 + 0.88 * Math.pow(Math.sin(Math.PI * t), 0.72));
+    }
+    function drawAuroraCurtains(ctx, width, height, time, exportMode) {
+      const colors = ["#64d9ff", "#67ffd0", "#8aa7ff", "#9de5ff"];
+      const drift = reducedMotion || exportMode ? 0 : time * 0.00012;
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      const ribbons = 3;
+      for (let ribbon = 0; ribbon < ribbons; ribbon++) {
+        const color = colors[ribbon % colors.length];
+        const center = width * (0.18 + ribbon * 0.31);
+        const ribbonWidth = width * (0.105 + (ribbon % 2) * 0.035);
+        const top = height * (0.025 + ribbon * 0.018);
+        const floor = height * (0.34 + (ribbon % 2) * 0.065);
+        const gradient = ctx.createLinearGradient(center - ribbonWidth * 1.8, 0, center + ribbonWidth * 1.8, 0);
+        gradient.addColorStop(0, color + "00");
+        gradient.addColorStop(0.18, color + "08");
+        gradient.addColorStop(0.42, color + "22");
+        gradient.addColorStop(0.58, color + "28");
+        gradient.addColorStop(0.84, color + "0b");
+        gradient.addColorStop(1, color + "00");
+        const centerAt = y => center + Math.sin(y / height * 7.1 + ribbon * 1.2 + drift) * width * 0.072 +
+          Math.sin(y / height * 15.4 + ribbon * 2.1 - drift * 0.65) * width * 0.022;
+        const halfAt = y => auroraRibbonHalfWidth((y - top) / Math.max(1, floor - top), ribbonWidth);
+        const edge = (y, side) => centerAt(y) + side * halfAt(y);
+        ctx.beginPath();
+        ctx.moveTo(edge(top, -1), top);
+        for (let y = top + height * 0.012; y < floor; y += height * 0.012) ctx.lineTo(edge(y, -1), y);
+        ctx.lineTo(edge(floor, -1), floor);
+        for (let y = floor; y >= top; y -= height * 0.012) ctx.lineTo(edge(y, 1), y);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.globalAlpha = 0.5 - ribbon * 0.065;
+        ctx.shadowColor = color + "50";
+        ctx.shadowBlur = width * 0.035;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+    function drawCodeFirework(ctx, x, y, radius, color, phase) {
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = Math.max(1, radius * 0.035);
+      ctx.globalAlpha = 0.35 + phase * 0.18;
+      for (let ray = 0; ray < 12; ray++) {
+        const angle = Math.PI * 2 * ray / 12;
+        const inner = radius * (0.3 + (ray % 3) * 0.04);
+        const outer = radius * (0.72 + (ray % 2) * 0.17);
+        ctx.beginPath();
+        ctx.moveTo(x + Math.cos(angle) * inner, y + Math.sin(angle) * inner);
+        ctx.lineTo(x + Math.cos(angle) * outer, y + Math.sin(angle) * outer);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.8;
+      ctx.fillRect(x - 1.5, y - 1.5, 3, 3);
+      ctx.restore();
+    }
+    function drawCodedAtmosphere(ctx, width, height, time, exportMode) {
+      const random = makeRandom(currentSeed);
+      const snow = [".", "·", "+", "*", "x"];
+      const drift = reducedMotion || exportMode ? 0 : time * 0.012;
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = 0; i < 96; i++) {
+        const x = (random() * width + drift * (0.35 + random())) % width;
+        const y = (random() * height + drift * (0.5 + random())) % height;
+        const color = i % 4 === 0 ? "#ffe8a0" : i % 3 === 0 ? "#8ceeff" : "#82efb0";
+        ctx.globalAlpha = 0.18 + random() * 0.45;
+        if (i % 5 === 0) {
+          ctx.fillStyle = color;
+          ctx.font = Math.max(7, Math.round(width / 85)) + "px monospace";
+          ctx.fillText(snow[i % snow.length], x, y);
+        } else {
+          ctx.fillStyle = color;
+          const pixel = Math.max(1, width * (i % 11 === 0 ? 0.003 : 0.0015));
+          ctx.fillRect(x, y, pixel, pixel);
+        }
+      }
+      const burstY = height * 0.22;
+      drawCodeFirework(ctx, width * 0.11, burstY, Math.min(width, height) * 0.045, "#71f5c2", 0.8);
+      drawCodeFirework(ctx, width * 0.89, burstY * 1.28, Math.min(width, height) * 0.038, "#ffcf72", 0.55);
+      if (!exportMode && !reducedMotion && (time % 11500) < 1500) {
+        const progress = (time % 11500) / 1500;
+        ctx.globalAlpha = 0.72 * Math.sin(Math.PI * progress);
+        ctx.strokeStyle = "#d4fbff"; ctx.lineWidth = Math.max(1, width * 0.002);
+        ctx.beginPath(); ctx.moveTo(width * (0.76 - progress * 0.4), height * (0.06 + progress * 0.2));
+        ctx.lineTo(width * (0.81 - progress * 0.4), height * (0.015 + progress * 0.2)); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+    function drawHelix(ctx, cx, cy, treeWidth, treeHeight, profile, time, angle, exportMode, aurora = false) {
+      const strands = aurora ? 2 : 3;
+      const colors = aurora ? ["#86efff", "#7df5d0"] : [profile.palette.accent, profile.palette.light, profile.palette.ribbon];
+      const wave = reducedMotion || exportMode ? 0 : time * (aurora ? 0.00025 : 0.00018);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      for (let strand = 0; strand < strands; strand++) {
+        const count = aurora ? 172 : 208;
+        for (let step = 0; step < count; step++) {
+          const t = step / (count - 1);
+          const phase = t * Math.PI * 2 * profile.turns + strand * Math.PI * 2 / strands + angle + wave;
+          const envelope = Math.sin(Math.PI * Math.max(0.015, Math.min(0.985, t))) * treeWidth * profile.aspect * (aurora ? 0.82 : 0.84);
+          const z = Math.cos(phase) * treeWidth * 0.13;
+          const focal = treeWidth * 4.1;
+          const perspective = focal / (focal + z);
+          const x = cx + Math.sin(phase) * envelope * perspective;
+          const y = cy - treeHeight * 0.49 + t * treeHeight * 0.94;
+          const color = colors[strand % colors.length];
+          const bead = treeHeight * (aurora ? 0.0027 : 0.0023) * (0.78 + (step % 5) * 0.08);
+          if (step % (aurora ? 7 : 9) === 0) paintGlow(ctx, x, y, treeHeight * (aurora ? 0.018 : 0.014), color, aurora ? 0.5 : 0.42);
+          ctx.fillStyle = color;
+          ctx.globalAlpha = aurora ? 0.45 + (step % 4) * 0.08 : 0.34 + (step % 5) * 0.08;
+          ctx.beginPath(); ctx.arc(x, y, Math.max(0.75, bead), 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+    function codedTierShape(progress, tierIndex) {
+      const eased = 1 - Math.pow(1 - Math.max(0, Math.min(1, progress)), 2);
+      const base = tierIndex === 0 ? 0.16 : 0.68;
+      return base + (1 - base) * eased;
+    }
+    function drawCodedTiers(ctx, cx, cy, treeWidth, treeHeight, profile, width) {
+      const font = Math.max(8, Math.round(width / 78));
+      const leaves = ["0", "1", "*", "+", "x", "·", "°", "∙", "✦"];
+      const colors = ["#70edaa", "#9aeaff", "#ffe18d", "#ff91ce"];
+      const random = makeRandom(currentSeed);
+      const rows = 48;
+      const branchTiers = 8;
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = font + "px monospace";
+      for (let row = 0; row < rows; row++) {
+        const progress = (row + 0.5) / rows;
+        const y = cy - treeHeight * 0.56 + progress * treeHeight * 1.08;
+        const tierProgress = (progress * branchTiers) % 1;
+        const tierIndex = Math.floor(progress * branchTiers);
+        const tierShape = codedTierShape(tierProgress, tierIndex);
+        const envelope = 0.025 + 0.975 * Math.pow(progress, 0.88);
+        const half = envelope * tierShape * treeWidth * profile.aspect * 0.96;
+        const step = font * 1.18;
+        const band = Math.min(colors.length - 1, Math.floor(progress * colors.length));
+        for (let x = -half; x <= half; x += step) {
+          const side = Math.abs(x / Math.max(1, half));
+          const column = Math.round((x + half) / step);
+          const edge = side > 0.88;
+          const glyph = edge ? (x < 0 ? "/" : "\\") : leaves[Math.floor(random() * leaves.length)];
+          const lights = (row * 13 + column * 7 + Math.floor(random() * 5)) % 19 === 0;
+          ctx.globalAlpha = edge ? 0.76 : 0.4 + (1 - side) * 0.28;
+          ctx.fillStyle = lights ? "#fff0ae" : colors[(band + Math.floor(random() * colors.length)) % colors.length];
+          ctx.fillText(glyph, cx + x, y + (column % 2) * font * 0.22);
+          if (lights && row % 2 === 0) {
+            ctx.fillStyle = "#fff2bd";
+            ctx.fillRect(cx + x - 1.2, y - 1.2, 2.4, 2.4);
+          }
+        }
+        if (row % 6 === 5) {
+          ctx.globalAlpha = 0.38;
+          ctx.fillStyle = colors[(tierIndex + 1) % colors.length];
+          ctx.fillText("╱ · · · · · · · · · ╲", cx, y + font * 0.66);
+        }
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+    function topperCenterY(profile, cy, treeHeight) {
+      const depth = profile.style === "The Coded Christmas" ? 0.57875
+        : profile.style === "Digital Aurora" ? 0.547 : 0.542;
+      return cy - treeHeight * depth;
+    }
+    function topperGlowStyle(profile) {
+      if (profile.style === "The Coded Christmas") return { radius: 0.1, alpha: 0.4 };
+      if (profile.style === "Digital Aurora") return { radius: 0.135, alpha: 0.68 };
+      return { radius: 0.145, alpha: 0.78 };
+    }
+    function drawTopper(ctx, cx, cy, treeWidth, treeHeight, profile, time, exportMode) {
+      const x = cx;
+      const y = topperCenterY(profile, cy, treeHeight);
+      const glow = topperGlowStyle(profile);
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      if (profile.style === "The Coded Christmas") {
+        const cell = Math.max(2, treeHeight * 0.012);
+        const pattern = ["00100", "01110", "11111", "01110", "00100"];
+        const colors = ["#a9ffcf", "#ffe08d", "#8de9ff", "#ff9bd0"];
+        ctx.fillStyle = colors[profile.starPoints % colors.length];
+        for (let row = 0; row < pattern.length; row++) for (let col = 0; col < pattern[row].length; col++) {
+          if (pattern[row][col] === "1") ctx.fillRect(x + (col - 2) * cell - cell / 2, y + (row - 2) * cell - cell / 2, cell, cell);
+        }
+        paintGlow(ctx, x, y, treeHeight * glow.radius, "#79f2a6", glow.alpha);
+      } else if (profile.style === "Digital Aurora") {
+        paintGlow(ctx, x, y, treeHeight * glow.radius, "#86efff", glow.alpha);
+        ctx.strokeStyle = "#c7ffff"; ctx.lineWidth = Math.max(1, treeHeight * 0.004);
+        ctx.beginPath(); ctx.ellipse(x, y, treeHeight * 0.065, treeHeight * 0.022, -0.38, 0, Math.PI * 2); ctx.stroke();
+        ctx.fillStyle = "#e6ffff";
+        ctx.beginPath(); ctx.moveTo(x, y - treeHeight * 0.057); ctx.lineTo(x + treeHeight * 0.036, y); ctx.lineTo(x, y + treeHeight * 0.057); ctx.lineTo(x - treeHeight * 0.036, y); ctx.closePath(); ctx.fill();
+      } else {
+        paintGlow(ctx, x, y, treeHeight * glow.radius, profile.palette.accent, glow.alpha);
+        ctx.fillStyle = profile.palette.light;
+        drawStar(ctx, x, y, treeHeight * 0.052, treeHeight * 0.019, profile.starPoints, -Math.PI / 2 + (exportMode ? 0 : Math.sin(time * 0.0005) * 0.12));
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+    function drawParticles(ctx, list, width, height, profile, time, angle, spread, exportMode, paintBackground = true) {
+      if (paintBackground) {
+        const background = ctx.createRadialGradient(width * 0.5, height * 0.5, 0, width * 0.5, height * 0.5, Math.max(width, height) * 0.72);
+        background.addColorStop(0, profile.palette.deep);
+        background.addColorStop(1, profile.palette.bg);
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, width, height);
+      }
+      drawAmbient(ctx, width, height, profile, time, exportMode);
+      if (profile.style === "Digital Aurora") drawAuroraCurtains(ctx, width, height, time, exportMode);
+      if (profile.style === "The Coded Christmas") drawCodedAtmosphere(ctx, width, height, time, exportMode);
+      const coded = profile.style === "The Coded Christmas";
+      const aurora = profile.style === "Digital Aurora";
+      if (coded) { ctx.font = Math.max(7, Math.round(width / 76)) + "px monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; }
+      ctx.globalCompositeOperation = "lighter";
+      const treeHeight = Math.min(height * profile.height, width * 1.03) * (width < 540 ? 0.92 : 1);
+      const treeWidth = Math.min(treeHeight * profile.aspect * 1.68, width * 0.42 / Math.max(0.3, profile.aspect * 0.96));
+      const cx = width * 0.5;
+      const cy = height * (exportMode ? 0.47 : 0.5);
+      for (let i = 0; i < list.length; i++) {
+        if (coded && i % 2 !== 0) continue;
+        const point = list[i];
+        const projected = projectParticle(point, cx, cy, treeWidth, treeHeight, angle, time, spread);
+        const shimmer = reducedMotion || exportMode ? 0 : Math.sin(time * 0.0018 + point.phase) * 0.22;
+        ctx.globalAlpha = Math.max(0.24, Math.min(1, (point.glow ? 0.78 : 0.56) + shimmer)) * profile.glow;
+        const color = coded ? ["#79f2a6", "#ffe188", "#80daff", "#f799d2"][Math.floor((point.ty + 1) * 2) % 4] : aurora ? (point.glow ? "#d7ffff" : "#6baaff") : point.color;
+        ctx.fillStyle = color;
+        if (coded) {
+          if (point.glow && i % 6 === 0) paintGlow(ctx, projected.x, projected.y, projected.size * 4.5, color, 0.45);
+          ctx.fillText(["·", "+", "*", "0", "1", "/", "\\", "x"][i % 8], projected.x, projected.y);
+          continue;
+        }
+        const size = projected.size * (exportMode ? 1.16 : 1);
+        if (point.glow && size > 1.45) {
+          paintGlow(ctx, projected.x, projected.y, size * (aurora ? 5.4 : 4.6), color, aurora ? 0.78 : 0.62);
+          ctx.globalAlpha = Math.min(1, 0.78 + shimmer);
+        }
+        ctx.beginPath(); ctx.arc(projected.x, projected.y, Math.max(0.5, size), 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      if (!spread) {
+        if (coded) drawCodedTiers(ctx, cx, cy, treeWidth, treeHeight, profile, width);
+        else drawHelix(ctx, cx, cy, treeWidth, treeHeight, profile, time, angle, exportMode, aurora);
+        drawTopper(ctx, cx, cy, treeWidth, treeHeight, profile, time, exportMode);
+      }
+    }
+    function draw() {
+      if (!currentTree || !logicalWidth || !logicalHeight) return;
+      const time = reducedMotion ? 0 : performance.now();
+      const autoRotation = reducedMotion ? 0 : frame * currentTree.spin;
+      const angle = rotation + autoRotation;
+      const spread = burst.length ? 0.28 : 0;
+      drawParticles(treeCtx, particles, logicalWidth, logicalHeight, currentTree, time, angle, spread, false);
+      if (burst.length) {
+        treeCtx.globalCompositeOperation = "lighter";
+        for (const spark of burst) {
+          spark.x += spark.vx; spark.y += spark.vy; spark.life -= 0.018;
+          treeCtx.globalAlpha = Math.max(0, spark.life);
+          treeCtx.fillStyle = spark.color;
+          treeCtx.beginPath(); treeCtx.arc(spark.x, spark.y, spark.size, 0, Math.PI * 2); treeCtx.fill();
+        }
+        treeCtx.globalCompositeOperation = "source-over";
+        treeCtx.globalAlpha = 1;
+        burst = burst.filter(spark => spark.life > 0);
+      }
+      frame++;
+    }
+    function loop(time) {
+      if (document.hidden || reducedMotion) return;
+      if (time - lastFrameAt >= 33) { draw(); lastFrameAt = time; }
+      raf = requestAnimationFrame(loop);
+    }
+    function startAnimation() {
+      cancelAnimationFrame(raf);
+      if (document.hidden || reducedMotion) { draw(); return; }
+      raf = requestAnimationFrame(loop);
+    }
+    function surprise() {
+      const random = currentTree.random;
+      const rect = treeCanvas.getBoundingClientRect();
+      const centerX = logicalWidth / 2;
+      const centerY = logicalHeight * 0.48;
+      burst = [];
+      for (let i = 0; i < 110; i++) {
+        const angle = random() * Math.PI * 2;
+        const speed = 0.8 + random() * 4.2;
+        burst.push({ x: centerX, y: centerY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, size: 1 + random() * 2.5, color: i % 4 === 0 ? currentTree.palette.light : currentTree.palette.accent });
+      }
+      if (reducedMotion) draw();
+      document.querySelector("#status").textContent = "一小束星火，替这棵树点亮了冬夜。";
+    }
+    function setStatus(message) { document.querySelector("#status").textContent = message; }
+    function saveTree() {
+      try {
+        localStorage.setItem(storageKey, currentSeed);
+        document.querySelector("#saveTree").textContent = "已收藏这棵树";
+        document.querySelector("#restoreTree").disabled = false;
+        setStatus("已收藏。新生成的树不会覆盖这枚种子。");
+      } catch {
+        setStatus("浏览器未允许本地存储，请使用分享链接保存这棵树。");
+      }
+    }
+    function restoreTree() {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (!validSeed(saved)) { setStatus("此浏览器还没有收藏树。"); return; }
+        newTree(saved, { updateAddress: true });
+        document.querySelector("#saveTree").textContent = "替换收藏树";
+        setStatus("已恢复收藏的圣诞树。");
+      } catch { setStatus("无法读取本地收藏，请检查浏览器存储权限。"); }
+    }
+    async function copyShareLink() {
+      const url = shareUrl();
+      const field = document.querySelector("#shareUrl");
+      field.value = url || currentSeed;
+      try {
+        await navigator.clipboard.writeText(field.value);
+        setStatus(url ? "互动分享链接已复制。" : "树种子已复制。");
+      } catch {
+        field.focus(); field.select();
+        setStatus(url ? "链接已选中，请复制。" : "树种子已选中，请复制。");
+      }
+    }
+    function renderQr(text) {
+      const matrix = text ? makeQrMatrix(text) : null;
+      const ctx = qrCtx;
+      const size = qrCanvas.width;
+      ctx.fillStyle = "#f8f2e4";
+      ctx.fillRect(0, 0, size, size);
+      if (!matrix) {
+        ctx.fillStyle = "#4a4334"; ctx.font = "16px sans-serif"; ctx.textAlign = "center"; ctx.fillText(text ? "链接过长" : "托管后可扫码", size / 2, size / 2); return;
+      }
+      paintQrModules(ctx, matrix, 0, 0, size);
+    }
+    function makeQrMatrix(text) {
+      const bytes = Array.from(new TextEncoder().encode(text));
+      let version = 0;
+      for (let i = 1; i <= QR_BLOCKS.length; i++) {
+        const countBits = i < 10 ? 8 : 16;
+        const capacity = QR_BLOCKS[i - 1].data.reduce((sum, length) => sum + length, 0) * 8;
+        if (4 + countBits + bytes.length * 8 <= capacity) { version = i; break; }
+      }
+      if (!version) return null;
+      const blockInfo = QR_BLOCKS[version - 1];
+      const dataCapacity = blockInfo.data.reduce((sum, length) => sum + length, 0);
+      const bits = [];
+      const appendBits = (value, count) => { for (let i = count - 1; i >= 0; i--) bits.push((value >>> i) & 1); };
+      appendBits(4, 4);
+      appendBits(bytes.length, version < 10 ? 8 : 16);
+      bytes.forEach(byte => appendBits(byte, 8));
+      const maxBits = dataCapacity * 8;
+      for (let i = 0; i < Math.min(4, maxBits - bits.length); i++) bits.push(0);
+      while (bits.length % 8) bits.push(0);
+      const data = [];
+      for (let i = 0; i < bits.length; i += 8) {
+        let value = 0; for (let j = 0; j < 8; j++) value = (value << 1) | bits[i + j];
+        data.push(value);
+      }
+      for (let pad = 0; data.length < dataCapacity; pad++) data.push(pad % 2 ? 0x11 : 0xec);
+      const divisor = rsDivisor(blockInfo.ecc);
+      const blocks = [];
+      let offset = 0;
+      for (const length of blockInfo.data) {
+        const block = data.slice(offset, offset + length);
+        offset += length;
+        blocks.push({ data: block, ecc: rsRemainder(block, divisor) });
+      }
+      const codewords = [];
+      const maxData = Math.max(...blockInfo.data);
+      for (let i = 0; i < maxData; i++) for (const block of blocks) if (i < block.data.length) codewords.push(block.data[i]);
+      for (let i = 0; i < blockInfo.ecc; i++) for (const block of blocks) codewords.push(block.ecc[i]);
+      return qrChooseMask(version, codewords);
+    }
+    function gfMultiply(x, y) {
+      let result = 0;
+      for (let i = 0; i < 8; i++) {
+        if (y & 1) result ^= x;
+        y >>>= 1;
+        x <<= 1;
+        if (x & 0x100) x ^= 0x11d;
+      }
+      return result;
+    }
+    function rsDivisor(degree) {
+      const result = new Array(degree).fill(0);
+      result[degree - 1] = 1;
+      let root = 1;
+      for (let i = 0; i < degree; i++) {
+        for (let j = 0; j < degree; j++) {
+          result[j] = gfMultiply(result[j], root);
+          if (j + 1 < degree) result[j] ^= result[j + 1];
+        }
+        root = gfMultiply(root, 2);
+      }
+      return result;
+    }
+    function rsRemainder(data, divisor) {
+      const result = new Array(divisor.length).fill(0);
+      for (const value of data) {
+        const factor = value ^ result.shift();
+        result.push(0);
+        for (let i = 0; i < result.length; i++) result[i] ^= gfMultiply(divisor[i], factor);
+      }
+      return result;
+    }
+    function qrChooseMask(version, codewords) {
+      const size = version * 4 + 17;
+      const base = Array.from({ length: size }, () => new Array(size).fill(false));
+      const functions = Array.from({ length: size }, () => new Array(size).fill(false));
+      function setFunction(x, y, dark) { if (x >= 0 && y >= 0 && x < size && y < size) { base[y][x] = dark; functions[y][x] = true; } }
+      function finder(cx, cy) {
+        for (let dy = -1; dy <= 7; dy++) for (let dx = -1; dx <= 7; dx++) {
+          const distance = Math.max(Math.abs(dx - 3), Math.abs(dy - 3));
+          setFunction(cx + dx, cy + dy, distance !== 2 && distance !== 4);
+        }
+      }
+      finder(0, 0); finder(size - 7, 0); finder(0, size - 7);
+      if (version > 1) {
+        const centers = QR_ALIGN[version - 1];
+        for (const y of centers) for (const x of centers) {
+          if (functions[y][x]) continue;
+          for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) setFunction(x + dx, y + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1);
+        }
+      }
+      for (let i = 8; i < size - 8; i++) {
+        if (!functions[6][i]) setFunction(i, 6, i % 2 === 0);
+        if (!functions[i][6]) setFunction(6, i, i % 2 === 0);
+      }
+      putQrFormat(base, functions, 0);
+      if (version >= 7) {
+        const versionData = version << 12;
+        const versionBits = versionData | bchRemainder(versionData, 0x1f25);
+        for (let bit = 0; bit < 18; bit++) {
+          const column = size - 11 + bit % 3;
+          const row = Math.floor(bit / 3);
+          const dark = Boolean(versionBits & (1 << bit));
+          setFunction(column, row, dark);
+          setFunction(row, column, dark);
+        }
+      }
+      const stream = [];
+      codewords.forEach(byte => { for (let bit = 7; bit >= 0; bit--) stream.push((byte >>> bit) & 1); });
+      let best = null;
+      let bestScore = Infinity;
+      for (let mask = 0; mask < 8; mask++) {
+        const matrix = base.map(row => row.slice());
+        let bitIndex = 0;
+        for (let right = size - 1; right >= 1; right -= 2) {
+          if (right === 6) right = 5;
+          for (let vertical = 0; vertical < size; vertical++) {
+            const y = ((right + 1) & 2) === 0 ? size - 1 - vertical : vertical;
+            for (let col = 0; col < 2; col++) {
+              const x = right - col;
+              if (functions[y][x]) continue;
+              let value = bitIndex < stream.length ? stream[bitIndex++] : 0;
+              if (maskCondition(mask, x, y)) value ^= 1;
+              matrix[y][x] = value !== 0;
+            }
+          }
+        }
+        putQrFormat(matrix, functions, mask);
+        const score = qrPenalty(matrix);
+        if (score < bestScore) { bestScore = score; best = matrix; }
+      }
+      return best;
+    }
+    function maskCondition(mask, x, y) {
+      const product = x * y;
+      if (mask === 0) return (x + y) % 2 === 0;
+      if (mask === 1) return y % 2 === 0;
+      if (mask === 2) return x % 3 === 0;
+      if (mask === 3) return (x + y) % 3 === 0;
+      if (mask === 4) return (Math.floor(y / 2) + Math.floor(x / 3)) % 2 === 0;
+      if (mask === 5) return product % 2 + product % 3 === 0;
+      if (mask === 6) return (product % 2 + product % 3) % 2 === 0;
+      return ((x + y) % 2 + product % 3) % 2 === 0;
+    }
+    function bchRemainder(value, polynomial) {
+      let remainder = value;
+      const degree = 31 - Math.clz32(polynomial);
+      while (remainder && 31 - Math.clz32(remainder) >= degree) remainder ^= polynomial << ((31 - Math.clz32(remainder)) - degree);
+      return remainder;
+    }
+    function putQrFormat(matrix, functions, mask) {
+      const size = matrix.length;
+      const data = (1 << 3) | mask;
+      const bits = ((data << 10) | bchRemainder(data << 10, 0x537)) ^ 0x5412;
+      const set = (x, y, bit) => { matrix[y][x] = bit !== 0; functions[y][x] = true; };
+      for (let i = 0; i <= 5; i++) set(8, i, (bits >>> i) & 1);
+      set(8, 7, (bits >>> 6) & 1); set(8, 8, (bits >>> 7) & 1); set(7, 8, (bits >>> 8) & 1);
+      for (let i = 9; i < 15; i++) set(14 - i, 8, (bits >>> i) & 1);
+      for (let i = 0; i < 8; i++) set(size - 1 - i, 8, (bits >>> i) & 1);
+      for (let i = 8; i < 15; i++) set(8, size - 15 + i, (bits >>> i) & 1);
+      set(8, size - 8, 1);
+    }
+    function qrPenalty(matrix) {
+      const size = matrix.length;
+      let score = 0;
+      for (let axis = 0; axis < 2; axis++) {
+        for (let a = 0; a < size; a++) {
+          let runColor = false;
+          let runLength = 0;
+          let line = [];
+          for (let b = 0; b < size; b++) {
+            const dark = axis === 0 ? matrix[a][b] : matrix[b][a];
+            line.push(dark ? 1 : 0);
+            if (dark === runColor) { runLength++; if (runLength === 5) score += 3; else if (runLength > 5) score++; }
+            else { runColor = dark; runLength = 1; }
+          }
+          const finderPattern = "10111010000";
+          const reversedPattern = "00001011101";
+          const text = line.join("");
+          for (let i = 0; i <= text.length - 11; i++) if (text.slice(i, i + 11) === finderPattern || text.slice(i, i + 11) === reversedPattern) score += 40;
+        }
+      }
+      for (let y = 0; y < size - 1; y++) for (let x = 0; x < size - 1; x++) {
+        const value = matrix[y][x];
+        if (matrix[y][x + 1] === value && matrix[y + 1][x] === value && matrix[y + 1][x + 1] === value) score += 3;
+      }
+      const darkCount = matrix.reduce((sum, row) => sum + row.filter(Boolean).length, 0);
+      const percent = darkCount * 100 / (size * size);
+      score += Math.floor(Math.abs(percent - 50) / 5) * 10;
+      return score;
+    }
+    function drawQr(text) { renderQr(text); }
+    function drawCollectionCard(seed) {
+      const exportProfile = { ...createProfile(seed), height: 0.95 };
+      const mask = makeMask(exportProfile);
+      const exportParticles = buildParticles(mask, exportProfile, 9500);
+      const ctx = printCtx;
+      const width = printCanvas.width;
+      const height = printCanvas.height;
+      const coded = exportProfile.style === "The Coded Christmas";
+      const aurora = exportProfile.style === "Digital Aurora";
+      const frameColor = coded ? "#6ce9a8" : aurora ? "#79dfff" : "#d8bd7c";
+      const cardName = coded ? exportProfile.name.toUpperCase() : exportProfile.name;
+      const background = ctx.createLinearGradient(0, 0, width * 0.3, height);
+      if (coded) {
+        background.addColorStop(0, "#07130e"); background.addColorStop(0.54, "#090e11"); background.addColorStop(1, "#111a17");
+      } else if (aurora) {
+        background.addColorStop(0, "#09182a"); background.addColorStop(0.52, "#101c35"); background.addColorStop(1, "#101020");
+      } else {
+        background.addColorStop(0, "#142521"); background.addColorStop(0.54, "#101a18"); background.addColorStop(1, "#231d19");
+      }
+      ctx.fillStyle = background; ctx.fillRect(0, 0, width, height);
+      const glowColor = coded ? "#53e59a" : aurora ? "#55cfff" : exportProfile.palette.accent;
+      const glow = ctx.createRadialGradient(width * 0.5, 820, 20, width * 0.5, 820, 700);
+      glow.addColorStop(0, glowColor + "38"); glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow; ctx.fillRect(0, 120, width, 1280);
+      const random = makeRandom(seed);
+      if (coded) {
+        ctx.strokeStyle = "#8be8ad12"; ctx.lineWidth = 1;
+        for (let x = 48; x < width; x += 32) { ctx.beginPath(); ctx.moveTo(x, 40); ctx.lineTo(x, height - 40); ctx.stroke(); }
+        for (let y = 48; y < height; y += 32) { ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(width - 40, y); ctx.stroke(); }
+      }
+      for (let i = 0; i < 210; i++) {
+        ctx.globalAlpha = 0.16 + random() * 0.52;
+        ctx.fillStyle = i % 5 === 0 ? exportProfile.palette.light : frameColor;
+        const x = random() * width, y = random() * height, r = 1 + random() * (i % 12 === 0 ? 3.5 : 1.5);
+        if (coded && i % 3 === 0) ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(r), Math.ceil(r));
+        else { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+      }
+      ctx.globalAlpha = 1;
+      ctx.save();
+      ctx.strokeStyle = frameColor; ctx.globalAlpha = coded ? 0.52 : 0.38; ctx.lineWidth = 2;
+      if (coded) ctx.strokeRect(30, 30, width - 60, height - 60);
+      else { ctx.beginPath(); ctx.roundRect(30, 30, width - 60, height - 60, 24); ctx.stroke(); }
+      ctx.globalAlpha = coded ? 0.34 : 0.22; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(44, 44, width - 88, height - 88, coded ? 0 : 18); ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.translate(0, 470);
+      ctx.translate(0, 425);
+      ctx.scale(0.88, 0.84);
+      ctx.translate(0, -425);
+      drawParticles(ctx, exportParticles, width, 850, exportProfile, 0, 0, 0, true, false);
+      ctx.restore();
+      ctx.textAlign = "center";
+      ctx.fillStyle = coded ? "#b6ffd3" : aurora ? "#c8f4ff" : exportProfile.palette.light;
+      ctx.font = coded ? "600 23px 'Courier New', monospace" : "500 25px Georgia, serif";
+      ctx.letterSpacing = coded ? "3px" : "6px";
+      ctx.fillText(coded ? "BOLOGNA_STUDENTS  //  XMAS_2026" : "BOLOGNA STUDENTS  ·  CHRISTMAS 2026", width / 2, 96);
+      ctx.letterSpacing = "0px";
+      ctx.fillStyle = coded ? "#87d9a9" : aurora ? "#a6d9ee" : "#d4c398";
+      ctx.font = coded ? "italic 28px 'Courier New', monospace" : "italic 31px Georgia, serif";
+      ctx.fillText("A Little Magic Between the Two Towers", width / 2, 160);
+      ctx.fillStyle = coded ? "#d1ffe1" : aurora ? "#d7f6ff" : "#f4e5bd";
+      const nameFamily = coded ? "'Courier New', monospace" : "Georgia, serif";
+      let nameSize = coded ? 58 : 74;
+      ctx.font = `500 ${nameSize}px ${nameFamily}`;
+      const maxNameWidth = width - 112;
+      while (ctx.measureText(cardName).width > maxNameWidth && nameSize > 38) {
+        nameSize -= 2; ctx.font = `500 ${nameSize}px ${nameFamily}`;
+      }
+      ctx.fillText(cardName, width / 2, 282, maxNameWidth);
+      ctx.fillStyle = coded ? "#9cc9ad" : aurora ? "#b8dce8" : "#d6c9ab";
+      ctx.font = "29px 'Noto Serif SC', 'Microsoft YaHei', serif";
+      ctx.fillText("一棵只属于此刻的冬日圣诞树", width / 2, 337);
+      ctx.fillStyle = frameColor;
+      ctx.font = coded ? "17px 'Courier New', monospace" : "17px Georgia, serif";
+      ctx.fillText(coded ? "[ UNIQUE SEED ARCHIVE ]" : aurora ? "✧  A WINTER LIGHT, HELD IN TIME  ✧" : "A ONE-OF-A-KIND WINTER KEEPSAKE", width / 2, 383);
+      ctx.fillStyle = coded ? "#d4ffe1" : aurora ? "#c9f4ff" : exportProfile.palette.light;
+      const blessingWords = exportProfile.blessing.split(/\s+/);
+      let blessingSize = 36;
+      let blessingLines = [];
+      do {
+        ctx.font = `italic ${blessingSize}px Georgia, serif`;
+        blessingLines = [];
+        let line = "";
+        for (const word of blessingWords) {
+          const candidate = line ? line + " " + word : word;
+          if (line && ctx.measureText(candidate).width > width - 150) {
+            blessingLines.push(line); line = word;
+          } else line = candidate;
+        }
+        if (line) blessingLines.push(line);
+        if (blessingLines.length <= 2 || blessingSize <= 24) break;
+        blessingSize -= 2;
+      } while (blessingSize >= 24);
+      const blessingLineHeight = Math.round(blessingSize * 1.28);
+      const blessingTop = 1434 - ((blessingLines.length - 1) * blessingLineHeight) / 2;
+      blessingLines.forEach((line, index) => ctx.fillText(line, width / 2, blessingTop + index * blessingLineHeight, width - 150));
+      ctx.fillStyle = coded ? "#8ae9ac" : aurora ? "#9edff4" : "#d8c99f";
+      ctx.font = "26px 'Courier New', monospace";
+      const serialY = blessingTop + blessingLines.length * blessingLineHeight + 11;
+      ctx.fillText(exportProfile.serial, width / 2, serialY, width - 150);
+      const link = shareUrlFor(seed);
+      const qr = link ? makeQrMatrix(link) : null;
+      if (qr) {
+        const boxTop = Math.max(1540, serialY + 28);
+        ctx.fillStyle = coded ? "#0b1510" : aurora ? "#101a29" : "#191b17";
+        ctx.beginPath(); ctx.roundRect(365, boxTop, 350, 248, coded ? 2 : 22); ctx.fill();
+        ctx.strokeStyle = frameColor; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.62;
+        ctx.beginPath(); ctx.roundRect(365, boxTop, 350, 248, coded ? 2 : 22); ctx.stroke(); ctx.globalAlpha = 1;
+        ctx.fillStyle = frameColor; ctx.font = coded ? "18px 'Courier New', monospace" : "17px Georgia, serif";
+        ctx.fillText(coded ? "SCAN://OPEN_TREE" : aurora ? "OPEN YOUR WINTER LIGHT" : "A LINK BACK TO YOUR TREE", width / 2, boxTop + 27);
+        paintQrOnCard(ctx, qr, 462, boxTop + 42, 156);
+        ctx.fillStyle = coded ? "#c0e7cb" : aurora ? "#caeaf2" : "#efe5ca";
+        ctx.font = "20px 'Noto Serif SC', 'Microsoft YaHei', serif";
+        ctx.fillText("扫码，重访这棵独一无二的树", width / 2, boxTop + 226);
+      } else {
+        const seedTop = Math.max(1560, serialY + 44);
+        ctx.strokeStyle = frameColor; ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(245, seedTop); ctx.lineTo(835, seedTop); ctx.stroke(); ctx.globalAlpha = 1;
+        ctx.fillStyle = frameColor; ctx.font = coded ? "17px 'Courier New', monospace" : "16px Georgia, serif";
+        ctx.fillText("LOCAL KEEPSAKE  ·  128-BIT SEED", width / 2, seedTop + 36);
+        ctx.fillStyle = coded ? "#b8ffd0" : aurora ? "#c3efff" : "#f3e8cc";
+        ctx.font = "20px 'Courier New', monospace";
+        ctx.fillText(seed.toUpperCase(), width / 2, seedTop + 76);
+        ctx.fillStyle = coded ? "#c0e7cb" : aurora ? "#caeaf2" : "#efe5ca";
+        ctx.font = "20px 'Noto Serif SC', 'Microsoft YaHei', serif";
+        ctx.fillText("当前为私人预览；收藏种子即可恢复同一棵树", width / 2, seedTop + 118);
+      }
+      ctx.textAlign = "center";
+      ctx.fillStyle = coded ? "#8ab89b" : aurora ? "#8db7ca" : "#c6b78f";
+      ctx.font = "20px Georgia, serif";
+      ctx.fillText("A small light, shared across Bologna.", width / 2, 1808, width - 160);
+      ctx.textAlign = "left";
+      return exportProfile;
+    }
+    function shareUrlFor(seed) {
+      const configuredOrigin = document.querySelector('meta[name="creative-lab-share-origin"]').content.trim();
+      if (!configuredOrigin) return null;
+      let canonical;
+      try { canonical = new URL(configuredOrigin); }
+      catch {
+        setStatus("正式分享域名配置无效，分享链接与二维码已关闭。");
+        return null;
+      }
+      if (canonical.protocol !== "https:" || canonical.pathname !== "/" || canonical.search || canonical.hash || canonical.username || canonical.password) {
+        setStatus("正式分享域名必须是 HTTPS 根域名，分享链接与二维码已关闭。");
+        return null;
+      }
+      if (canonical.hostname.replace(/\.$/, "").endsWith(".invalid")) return null;
+      const url = new URL(location.href);
+      if (url.origin !== canonical.origin) return null;
+      url.search = "";
+      url.hash = "";
+      url.searchParams.set("s", seed);
+      return url.toString();
+    }
+    function paintQrOnCard(ctx, matrix, left, top, side) {
+      ctx.fillStyle = "#f8f2e4";
+      ctx.beginPath(); ctx.roundRect(left - 10, top - 10, side + 20, side + 20, 15); ctx.fill();
+      paintQrModules(ctx, matrix, left, top, side);
+    }
+    function paintQrModules(ctx, matrix, left, top, side) {
+      const quiet = 4;
+      const modules = matrix.length + quiet * 2;
+      const cell = Math.floor(side / modules);
+      if (cell < 1) return;
+      const offset = Math.floor((side - cell * modules) / 2) + quiet * cell;
+      const startX = Math.round(left) + offset;
+      const startY = Math.round(top) + offset;
+      ctx.fillStyle = "#19211d";
+      for (let y = 0; y < matrix.length; y++) for (let x = 0; x < matrix.length; x++) {
+        if (matrix[y][x]) ctx.fillRect(startX + x * cell, startY + y * cell, cell, cell);
+      }
+    }
+    let cardPreviewUrl = "";
+    function exportCard() {
+      const button = document.querySelector("#exportCard");
+      button.disabled = true;
+      try {
+        const seed = currentSeed;
+        drawCollectionCard(seed);
+        printCanvas.toBlob(blob => {
+          button.disabled = false;
+          if (!blob) { setStatus("收藏卡生成失败，请重试。"); return; }
+          const previousUrl = cardPreviewUrl;
+          cardPreviewUrl = URL.createObjectURL(blob);
+          const link = document.querySelector("#card-download");
+          link.href = cardPreviewUrl;
+          link.download = "bologna-christmas-tree-" + seed.slice(0, 8) + ".png";
+          document.querySelector("#card-image").src = cardPreviewUrl;
+          document.querySelector("#card-preview").hidden = false;
+          if (previousUrl) URL.revokeObjectURL(previousUrl);
+          setStatus("1080×1920 收藏卡已生成，可以下载或长按保存。");
+        }, "image/png");
+      } catch (error) {
+        button.disabled = false;
+        setStatus(error && error.message === "secure_random_unavailable" ? "此浏览器无法安全生成专属种子。" : "收藏卡生成失败，请稍后重试。");
+      }
+    }
+    function triggerBurstAt(x, y) {
+      const random = currentTree.random;
+      burst = [];
+      for (let i = 0; i < 92; i++) {
+        const angle = random() * Math.PI * 2;
+        const speed = 0.8 + random() * 4.4;
+        burst.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, size: 1 + random() * 2.5, color: i % 4 === 0 ? currentTree.palette.light : currentTree.palette.accent });
+      }
+      setStatus("一小束星火，替这棵树点亮了冬夜。");
+      if (reducedMotion) draw();
+    }
+    treeCanvas.addEventListener("pointerdown", event => {
+      dragging = true;
+      lastPointer = { x: event.clientX, y: event.clientY };
+      pointer = lastPointer;
+      treeCanvas.setPointerCapture(event.pointerId);
+    });
+    treeCanvas.addEventListener("pointermove", event => {
+      if (!dragging || !lastPointer) return;
+      const deltaX = event.clientX - lastPointer.x;
+      rotation += deltaX * 0.009;
+      lastPointer = { x: event.clientX, y: event.clientY };
+      pointer = lastPointer;
+      if (reducedMotion) draw();
+    });
+    treeCanvas.addEventListener("pointerup", event => {
+      dragging = false; lastPointer = null;
+      try { treeCanvas.releasePointerCapture(event.pointerId); } catch {}
+    });
+    treeCanvas.addEventListener("pointercancel", () => { dragging = false; lastPointer = null; });
+    treeCanvas.addEventListener("click", event => {
+      const rect = treeCanvas.getBoundingClientRect();
+      triggerBurstAt((event.clientX - rect.left) * logicalWidth / rect.width, (event.clientY - rect.top) * logicalHeight / rect.height);
+    });
+    document.querySelector("#surprise").addEventListener("click", () => triggerBurstAt(logicalWidth * 0.5, logicalHeight * 0.42));
+    document.querySelector("#newTree").addEventListener("click", () => {
+      try { newTree(seedHex(), { updateAddress: true }); document.querySelector("#saveTree").textContent = "收藏这棵树"; setStatus("新树已生成。此前收藏的树保持不变。"); }
+      catch { setStatus("当前浏览器无法安全生成新的随机种子。"); }
+    });
+    document.querySelector("#saveTree").addEventListener("click", saveTree);
+    document.querySelector("#restoreTree").addEventListener("click", restoreTree);
+    document.querySelector("#shareTree").addEventListener("click", copyShareLink);
+    document.querySelector("#exportCard").addEventListener("click", exportCard);
+    window.addEventListener("resize", resize);
+    document.addEventListener("visibilitychange", startAnimation);
+
+    function initialize() {
+      resize();
+      const requested = new URL(location.href).searchParams.get("s");
+      let seed = validSeed(requested) ? requested.toLowerCase() : "";
+      if (!seed) {
+        try { const saved = localStorage.getItem(storageKey); if (validSeed(saved)) seed = saved; } catch {}
+      }
+      if (!seed) {
+        try { seed = seedHex(); } catch { setStatus("此浏览器不支持安全随机数生成，无法创建专属树。"); return; }
+      }
+      newTree(seed);
+      try { document.querySelector("#restoreTree").disabled = !validSeed(localStorage.getItem(storageKey)); } catch { document.querySelector("#restoreTree").disabled = true; }
+      if (!shareUrl()) {
+        document.querySelector("#shareTree").textContent = "复制树种子";
+        document.querySelector("#localNotice").textContent = "分享链接和二维码仅在登记的正式 HTTPS 域名启用。当前预览仍可收藏、导出或复制树种子。";
+      }
+      startAnimation();
+    }
+    initialize();
+  </script>
+</body>
+</html>
