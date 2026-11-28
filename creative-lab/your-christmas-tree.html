@@ -138,6 +138,7 @@
           <button id="surprise" type="button">点亮星火惊喜</button>
           <button class="wide" id="exportCard" type="button">导出 1080×1920 收藏卡 PNG</button>
           <button class="wide" id="shareTree" type="button">复制互动分享链接</button>
+          <input class="wide" id="shareUrl" type="text" aria-label="手动复制链接或树种子" readonly hidden>
         </section>
         <p class="status" id="status" aria-live="polite">正在为你点亮一棵树。</p>
         <p class="small-print" id="localNotice">收藏只在此浏览器保存随机种子。分享链接使用当前网页地址和树种子。</p>
@@ -843,9 +844,10 @@
       field.value = url || currentSeed;
       try {
         await navigator.clipboard.writeText(field.value);
+        field.hidden = true;
         setStatus(url ? "互动分享链接已复制。" : "树种子已复制。");
       } catch {
-        field.focus(); field.select();
+        field.hidden = false; field.focus(); field.select();
         setStatus(url ? "链接已选中，请复制。" : "树种子已选中，请复制。");
       }
     }
