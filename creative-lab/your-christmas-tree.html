@@ -54,6 +54,8 @@
     .swatches i { display: block; width: 14px; height: 14px; border: 1px solid #ffffff55; border-radius: 50%; }
     .qr-row { display: grid; grid-template-columns: 112px 1fr; gap: 14px; align-items: center; }
     .qr-row[hidden] { display: none; }
+    #qrZoom { padding: 0; max-width: 100%; }
+    #qrZoom[aria-expanded="true"] #qrCanvas { width: min(224px, 55vw); height: min(224px, 55vw); }
     #qrCanvas { display: block; width: 112px; height: 112px; padding: 7px; border-radius: 10px; background: #f8f2e4; image-rendering: pixelated; }
     .qr-title { margin: 0 0 6px; color: var(--gold-soft); font: 500 1rem Georgia, serif; }
     .qr-help { margin: 0; color: #bdc7b7; font-size: .81rem; line-height: 1.45; overflow-wrap: anywhere; }
@@ -107,12 +109,13 @@
 <body>
   <main>
     <header>
-      <a class="back" href="index.html">← Creative Lab</a>
+      <a class="back" href="../christmas-2026.html#calendar">← 圣诞活动</a>
       <div class="brand">BOLOGNA STUDENTS<br>CHRISTMAS 2026</div>
     </header>
     <p class="eyebrow">A Little Magic Between the Two Towers</p>
     <h1>Your Christmas Tree</h1>
-    <p class="intro">一棵树，一枚只属于你的随机种子。拖动旋转它，轻触让星光散开；收藏卡和互动页面都能恢复同一棵树。</p>
+    <p class="intro">一棵树，一枚只属于你的随机种子。拖动旋转它，轻触让星光散开；收藏卡和互动页面都能恢复同一棵树。旧链接保留名称、编号与配色，树形采用新版三维渲染。</p>
+    <details><summary>你也是海贼王的粉丝吗？</summary><button type="button" id="pirateTheme">当然，我喜欢</button> <button type="button" id="standardTheme">保持原样</button></details>
     <section class="layout" aria-label="专属圣诞树">
       <div class="tree-stage">
         <canvas id="treeCanvas" width="900" height="804" aria-label="可拖动旋转、触摸聚散的金色粒子圣诞树"></canvas>
@@ -128,7 +131,7 @@
           <div class="palette-line"><span>专属配色</span><span class="swatches" id="swatches"></span><span id="paletteName"></span></div>
         </section>
         <section class="glass-card qr-row" id="qrRow" hidden>
-          <canvas id="qrCanvas" width="224" height="224" aria-label="当前圣诞树分享链接二维码"></canvas>
+          <button type="button" id="qrZoom" aria-label="放大分享二维码" aria-expanded="false"><canvas id="qrCanvas" width="224" height="224" aria-label="当前圣诞树分享链接二维码"></canvas></button>
           <div><p class="qr-title">把这枚星光寄出去</p><p class="qr-help">链接和二维码都含有树种子，打开后会恢复同一棵树。</p></div>
         </section>
         <section class="controls" aria-label="圣诞树操作">
@@ -136,6 +139,7 @@
           <button id="restoreTree" type="button">恢复收藏树</button>
           <button id="newTree" type="button">再遇见一棵树</button>
           <button id="surprise" type="button">点亮星火惊喜</button>
+          <button id="resetView" type="button">回正视角</button>
           <button class="wide" id="exportCard" type="button">导出 1080×1920 收藏卡 PNG</button>
           <button class="wide" id="shareTree" type="button">复制互动分享链接</button>
           <input class="wide" id="shareUrl" type="text" aria-label="手动复制链接或树种子" readonly hidden>
@@ -202,10 +206,13 @@
     ];
     const QR_ALIGN = [[], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
     let currentSeed = "";
+    let currentTheme = "";
     let currentTree = null;
     let particles = [];
     let pointer = null;
     let dragging = false;
+    let dragOrigin = null;
+    let moved = false;
     let lastPointer = null;
     let rotation = 0;
     let burst = [];
@@ -275,27 +282,6 @@
         random
       };
     }
-    function shapePoints(draw, size, random) {
-      const surface = document.createElement("canvas");
-      surface.width = surface.height = size;
-      const context = surface.getContext("2d", { willReadFrequently: true });
-      draw(context, size);
-      const data = context.getImageData(0, 0, size, size).data;
-      const points = [];
-      for (let y = 0; y < size; y += 2) {
-        for (let x = 0; x < size; x += 2) {
-          const index = (y * size + x) * 4;
-          if (data[index + 3] < 140 || data[index] + data[index + 1] + data[index + 2] < 90) continue;
-          const brightness = (data[index] + data[index + 1] + data[index + 2]) / 3;
-          points.push({ x: x / size - 0.5, y: y / size - 0.5, brightness: brightness / 255 });
-        }
-      }
-      for (let i = points.length - 1; i > 0; i--) {
-        const j = Math.floor(random() * (i + 1));
-        [points[i], points[j]] = [points[j], points[i]];
-      }
-      return points;
-    }
     function drawStar(context, cx, cy, outer, inner, count, rotationAngle) {
       context.beginPath();
       for (let i = 0; i < count * 2; i++) {
@@ -331,71 +317,6 @@
       ctx.drawImage(glowSprite(color), x - size / 2, y - size / 2, size, size);
       ctx.globalAlpha = previousAlpha;
     }
-    function makeMask(profile) {
-      const size = 512;
-      const random = makeRandom(currentSeed);
-      const tones = { canopy: "rgb(110,110,110)", branch: "rgb(165,165,165)", garland: "rgb(220,220,220)", ornament: "rgb(255,255,255)" };
-      function draw(context, side) {
-        const cx = side * 0.5;
-        const top = side * 0.12;
-        const bottom = side * 0.82;
-        const half = side * profile.aspect * 0.48;
-        const center = side * (0.49 + (random() - 0.5) * 0.025);
-        const topX = cx + center - side * 0.49;
-        context.fillStyle = tones.canopy;
-        context.beginPath();
-        context.moveTo(cx, top);
-        context.bezierCurveTo(cx - half * 0.1, top + side * 0.13, cx - half * 0.76, bottom - side * 0.16, cx - half, bottom);
-        context.quadraticCurveTo(cx, bottom + side * 0.035, cx + half, bottom);
-        context.bezierCurveTo(cx + half * 0.72, bottom - side * 0.17, cx + half * 0.1, top + side * 0.12, cx, top);
-        context.fill();
-        context.fillStyle = tones.branch;
-        for (let tier = 0; tier < profile.tiers; tier++) {
-          const progress = (tier + 1) / (profile.tiers + 1);
-          const y = top + progress * (bottom - top);
-          const width = half * progress * (0.82 + random() * 0.12);
-          context.beginPath();
-          context.moveTo(cx - width * 0.72, y - side * 0.014);
-          context.lineTo(cx, y + side * 0.018);
-          context.lineTo(cx + width * 0.72, y - side * 0.014);
-          context.lineWidth = side * 0.009;
-          context.lineCap = "round";
-          context.strokeStyle = tones.branch;
-          context.stroke();
-        }
-        for (let strand = 0; strand < 3; strand++) {
-          context.beginPath();
-          for (let step = 0; step <= 1200; step++) {
-            const t = step / 1200;
-            const y = top + side * 0.055 + t * (bottom - top - side * 0.08);
-            const edge = Math.min(1, (y - top) / (bottom - top));
-            const envelope = (profile.style === "The Coded Christmas" ? Math.pow(edge, 0.88) : Math.sin(Math.PI * edge)) * half * 0.84;
-            const angle = t * Math.PI * 2 * profile.turns + strand * Math.PI * 2 / 3;
-            const x = cx + Math.sin(angle) * envelope;
-            if (step === 0) context.moveTo(x, y); else context.lineTo(x, y);
-          }
-          context.strokeStyle = tones.garland;
-          context.lineWidth = side * 0.0048;
-          context.lineCap = "round";
-          context.stroke();
-        }
-        context.fillStyle = tones.ornament;
-        const ornamentCount = 18 + Math.floor(random() * 18);
-        for (let i = 0; i < ornamentCount; i++) {
-          const y = top + side * 0.09 + random() * (bottom - top - side * 0.12);
-          const edge = (y - top) / (bottom - top);
-          const extent = (profile.style === "The Coded Christmas" ? Math.pow(edge, 0.88) : Math.sin(Math.PI * edge)) * half * 0.8;
-          const x = cx + (random() * 2 - 1) * extent;
-          const radius = side * (0.006 + random() * 0.007);
-          context.beginPath();
-          context.arc(x, y, radius, 0, Math.PI * 2);
-          context.fill();
-        }
-        context.fillStyle = tones.branch;
-        context.fillRect(cx - side * 0.034, bottom - 1, side * 0.068, side * 0.11);
-      }
-      return shapePoints(draw, size, random);
-    }
     function qualityCount() {
       const width = Math.min(window.innerWidth || 360, window.screen && window.screen.width || 360);
       const memory = navigator.deviceMemory || 8;
@@ -404,27 +325,37 @@
       if (memory <= 4) return 4800;
       return 7200;
     }
-    function buildParticles(mask, profile, count) {
-      const random = makeRandom(currentSeed);
-      const result = new Array(count);
+    function buildParticles(seed, profile, count) {
+      const random = makeRandom(seed);
+      const colors = profile.palette;
+      const coded = profile.style === "The Coded Christmas";
+      const particles = [];
       for (let i = 0; i < count; i++) {
-        const source = mask[Math.floor(random() * mask.length)];
-        const halfWidth = profile.aspect * Math.max(0.12, Math.sin(Math.PI * (source.y + 0.5)));
-        const volume = Math.max(0, 1 - Math.min(1, Math.abs(source.x) / halfWidth));
-        const depth = (random() * 2 - 1) * volume * 0.22;
+        const height = random();
+        const angle = random() * 2 * Math.PI;
+        const density = Math.sqrt(random());
         const choice = random();
-        const colors = profile.palette;
-        let color = source.brightness > 0.92 ? colors.light : choice < 0.11 ? colors.accent : choice < 0.27 ? colors.ribbon : choice < 0.52 ? colors.leaf : colors.deep;
-        result[i] = {
-          x: random() * 2 - 1, y: random() * 2 - 1, z: depth,
-          tx: source.x * 2, ty: (source.y * 2 + 0.06) * 0.8,
-          size: 0.65 + random() * (source.brightness > 0.92 ? 1.8 : 1.1),
-          phase: random() * Math.PI * 2,
-          glow: source.brightness > 0.92 || choice < 0.1,
-          color
-        };
+        const trunk = i % 30 === 0;
+        const tier = height * profile.tiers;
+        const branch = coded ? 0.72 + (tier % 1) * 0.28 : 0.88 + Math.sin(tier * 2 * Math.PI) * 0.12;
+        const crown = profile.aspect * 1.65 * Math.pow(height, 0.86);
+        const radius = trunk ? 0.10 * density : crown * branch * (0.22 + 0.78 * density);
+        const glow = !trunk && choice < 0.12;
+        particles.push({
+          x: random() * 2 - 1, y: random() * 2 - 1,
+          tx: radius * Math.cos(angle), z: radius * Math.sin(angle),
+          ty: trunk ? 0.31 + height * 0.14 : -0.39 + height * 0.74,
+          size: 0.65 + random() * (glow ? 1.8 : 1.1),
+          phase: random() * 2 * Math.PI, glow,
+          color: glow ? colors.light : choice < 0.27 ? colors.ribbon : choice < 0.57 ? colors.leaf : colors.deep
+        });
       }
-      return result;
+      return particles;
+    }
+    function themedProfile(seed) {
+      const profile = createProfile(seed);
+      if (currentTheme !== "pirate") return profile;
+      return { ...profile, style: "Spiral", palette: { ...profile.palette, name: "Grand Line", bg: "#071829", deep: "#102d46", leaf: "#318a91", ribbon: "#e76549", accent: "#ffd278", light: "#fff2c6" } };
     }
     function setTheme(profile) {
       document.documentElement.style.setProperty("--night", profile.palette.bg);
@@ -447,9 +378,8 @@
     }
     function newTree(seed, options = {}) {
       currentSeed = seed.toLowerCase();
-      currentTree = createProfile(currentSeed);
-      const mask = makeMask(currentTree);
-      particles = buildParticles(mask, currentTree, options.print ? 9500 : qualityCount());
+      currentTree = themedProfile(currentSeed);
+      particles = buildParticles(currentSeed, currentTree, qualityCount());
       rotation = currentTree.random() * Math.PI * 2;
       setTheme(currentTree);
       const publicUrl = shareUrl();
@@ -459,6 +389,7 @@
       if (options.updateAddress && location.protocol !== "file:") {
         const url = new URL(location.href);
         url.searchParams.set("s", currentSeed);
+        if (currentTheme) url.searchParams.set("t", currentTheme); else url.searchParams.delete("t");
         history.replaceState(null, "", url);
       }
       draw();
@@ -822,6 +753,7 @@
     function saveTree() {
       try {
         localStorage.setItem(storageKey, currentSeed);
+        localStorage.setItem(storageKey + ".theme", currentTheme);
         document.querySelector("#saveTree").textContent = "已收藏这棵树";
         document.querySelector("#restoreTree").disabled = false;
         setStatus("已收藏。新生成的树不会覆盖这枚种子。");
@@ -833,6 +765,7 @@
       try {
         const saved = localStorage.getItem(storageKey);
         if (!validSeed(saved)) { setStatus("此浏览器还没有收藏树。"); return; }
+        currentTheme = localStorage.getItem(storageKey + ".theme") === "pirate" ? "pirate" : "";
         newTree(saved, { updateAddress: true });
         document.querySelector("#saveTree").textContent = "替换收藏树";
         setStatus("已恢复收藏的圣诞树。");
@@ -1054,9 +987,8 @@
     }
     function drawQr(text) { renderQr(text); }
     function drawCollectionCard(seed) {
-      const exportProfile = { ...createProfile(seed), height: 0.95 };
-      const mask = makeMask(exportProfile);
-      const exportParticles = buildParticles(mask, exportProfile, 9500);
+      const exportProfile = themedProfile(seed);
+      const exportParticles = buildParticles(seed, exportProfile, 9500);
       const ctx = printCtx;
       const width = printCanvas.width;
       const height = printCanvas.height;
@@ -1207,6 +1139,7 @@
       url.search = "";
       url.hash = "";
       url.searchParams.set("s", seed);
+      if (currentTheme) url.searchParams.set("t", currentTheme);
       return url.toString();
     }
     function paintQrOnCard(ctx, matrix, left, top, side) {
@@ -1265,12 +1198,16 @@
     }
     treeCanvas.addEventListener("pointerdown", event => {
       dragging = true;
+      moved = false;
+      dragOrigin = { x: event.clientX, y: event.clientY };
       lastPointer = { x: event.clientX, y: event.clientY };
       pointer = lastPointer;
       treeCanvas.setPointerCapture(event.pointerId);
     });
     treeCanvas.addEventListener("pointermove", event => {
       if (!dragging || !lastPointer) return;
+      if (!moved && Math.hypot(event.clientX - dragOrigin.x, event.clientY - dragOrigin.y) < 6) return;
+      moved = true;
       const deltaX = event.clientX - lastPointer.x;
       rotation += deltaX * 0.009;
       lastPointer = { x: event.clientX, y: event.clientY };
@@ -1283,9 +1220,22 @@
     });
     treeCanvas.addEventListener("pointercancel", () => { dragging = false; lastPointer = null; });
     treeCanvas.addEventListener("click", event => {
+      if (moved) return;
       const rect = treeCanvas.getBoundingClientRect();
       triggerBurstAt((event.clientX - rect.left) * logicalWidth / rect.width, (event.clientY - rect.top) * logicalHeight / rect.height);
     });
+    document.querySelector("#qrZoom").addEventListener("click", event => {
+      const button = event.currentTarget;
+      button.setAttribute("aria-expanded", String(button.getAttribute("aria-expanded") !== "true"));
+    });
+    for (const [id, theme] of [["pirateTheme", "pirate"], ["standardTheme", ""]]) {
+      document.querySelector("#" + id).addEventListener("click", () => {
+        currentTheme = theme;
+        newTree(currentSeed, { updateAddress: true });
+        setStatus(theme ? "已切换至海贼王节日配色。" : "已恢复原圣诞树。");
+      });
+    }
+    document.querySelector("#resetView").addEventListener("click", () => { rotation = 0; frame = 0; draw(); });
     document.querySelector("#surprise").addEventListener("click", () => triggerBurstAt(logicalWidth * 0.5, logicalHeight * 0.42));
     document.querySelector("#newTree").addEventListener("click", () => {
       try { newTree(seedHex(), { updateAddress: true }); document.querySelector("#saveTree").textContent = "收藏这棵树"; setStatus("新树已生成。此前收藏的树保持不变。"); }
@@ -1308,6 +1258,7 @@
       if (!seed) {
         try { seed = seedHex(); } catch { setStatus("此浏览器不支持安全随机数生成，无法创建专属树。"); return; }
       }
+      currentTheme = new URL(location.href).searchParams.get("t") === "pirate" ? "pirate" : "";
       newTree(seed);
       try { document.querySelector("#restoreTree").disabled = !validSeed(localStorage.getItem(storageKey)); } catch { document.querySelector("#restoreTree").disabled = true; }
       if (!shareUrl()) {
